@@ -14,7 +14,7 @@ function createWindow() {
             nodeIntegration:false,
         }
     });
-    mainWindow.loadFile('src/renderer/loginScreen.html');
+    mainWindow.loadFile('src/renderer/login_screen.html');
 
 }
 
