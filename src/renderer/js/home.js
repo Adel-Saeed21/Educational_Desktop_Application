@@ -3,5 +3,5 @@ window.api.getUsername().then(({ currentUser }) => {
 });
 
 function logout() {
-  location.href = '/home/infinity/Desktop/prototype/src/renderer/login_screen.html';
+  location.href = 'login_screen.html';
 }

@@ -14,10 +14,10 @@ if(toggleEye){
         const passwordField=document.getElementById('password');
         if(passwordField.type==='password'){
             passwordField.type='text';
-            toggleEye.src='/home/infinity/Desktop/prototype/assets/hide_password.png';
+            toggleEye.src='../../assets/hide_password.png'; 
         }else{
             passwordField.type='password';
-            toggleEye.src='/home/infinity/Desktop/prototype/assets/view_password.png';
+            toggleEye.src='../../assets/view_password.png';
         }
     });
 }
