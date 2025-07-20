@@ -1,0 +1,40 @@
+body, html {
+            height: 100%;
+            margin: 0;
+            background-image: url('assets/test.JPG');
+            background-size: cover;
+            background-position: center;
+        }
+     .toggle-eye {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  /* transform: translateY(-50%); */
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  z-index: 350;
+}
+        .toggle-eye:hover {
+            opacity: 0.7;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #e0f7fa;
+            font-family: Arial, sans-serif;
+        }
+
+        #loginFormContainer {
+            background: #ffe6f0;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+
+        #loginButton {
+            margin-top: 10px;
+        }

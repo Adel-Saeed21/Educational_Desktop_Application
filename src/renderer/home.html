@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Home</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    #appBarcontainer {
+      background-color: #f8f9fa;
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-bottom: 1px solid #ddd;
+    }
+
+    #username {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    #logoutBtn {
+      padding: 6px 12px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    #logoutBtn:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="appBarcontainer">
+    <h1 id="username">Welcome</h1>
+    <button id="logoutBtn" onclick="logout()">Logout</button>
+  </div>
+
+  <script src="/src/renderer/js/home.js">
+    
+  </script>
+
+</body>
+</html>
