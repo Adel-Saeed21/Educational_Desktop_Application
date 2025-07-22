@@ -8,14 +8,14 @@ let currentPassword = null;
 function createWindow() {
     mainWindow = new BrowserWindow({
         height:800,
-        width:800,
+        width:1000,
         webPreferences:{
             preload:path.join(__dirname, 'preload.js'),
             contextIsolation:true,
             nodeIntegration:false,
         }
     });
-    mainWindow.loadFile('src/renderer/login_screen.html');
+    mainWindow.loadFile('src/renderer/home.html');
 
 }
 
