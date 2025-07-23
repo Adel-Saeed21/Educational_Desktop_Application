@@ -17,55 +17,50 @@ const previousBtn = document.getElementById('Previous');
 const questionElement = document.getElementById('Question');
 const answerInput = document.getElementById('answer');
 
-const questions = [
-  "What's Your name?",
-  "What's Your favorite color?",
-  "What's your hobby?",
-  "What's your favorite food?",
-  "What's your dream job?"
-];
+const questions = {
+  "What's Your name?": "",
+  "What's Your favorite color?": "",
+  "What's your hobby?": "",
+  "What's your favorite food?": "",
+  "What's your dream job?": ""
+};
 
+const questionKeys = Object.keys(questions);
 let currentQuestionIndex = 0;
 
 function updateUI() {
-  
-  questionElement.innerText = questions[currentQuestionIndex];
-  answerInput.value = '';
-
- if (currentQuestionIndex === 0) {
-    previousBtn.style.display = 'none';
-    exit.style.display = 'block';
-  } else {nextBtn.addEventListener('click', goToNextQuestion);
-
-    previousBtn.style.display = 'inline-block';
-    exit.style.display = 'none';
-  }
-
-  if (currentQuestionIndex === questions.length - 1) {
-    nextBtn.style.display = 'none';
-    submit.style.display = 'inline-block';
-  } else {
-    nextBtn.style.display = 'inline-block';
-    submit.style.display = 'none';
-  }
+  const currentQuestion = questionKeys[currentQuestionIndex];
+  questionElement.innerText = currentQuestion;
+  answerInput.value = questions[currentQuestion] || "";
+  previousBtn.style.display = currentQuestionIndex === 0 ? 'none' : 'inline-block';
+  exit.style.display = currentQuestionIndex === 0 ? 'block' : 'none';
+  nextBtn.style.display = currentQuestionIndex === questionKeys.length - 1 ? 'none' : 'inline-block';
+  submit.style.display = currentQuestionIndex === questionKeys.length - 1 ? 'inline-block' : 'none';
 }
 
 function goToNextQuestion() {
-  if (currentQuestionIndex < questions.length - 1) {
+  saveAnswer();
+  if (currentQuestionIndex < questionKeys.length - 1) {
     currentQuestionIndex++;
     updateUI();
   }
 }
 
 function goToPreviousQuestion() {
+  saveAnswer();
   if (currentQuestionIndex > 0) {
     currentQuestionIndex--;
     updateUI();
   }
 }
 
+function saveAnswer() {
+  const currentQuestion = questionKeys[currentQuestionIndex];
+  questions[currentQuestion] = answerInput.value.trim();
+}
+
+
 nextBtn.addEventListener('click', goToNextQuestion);
 previousBtn.addEventListener('click', goToPreviousQuestion);
 
 updateUI();
-  
