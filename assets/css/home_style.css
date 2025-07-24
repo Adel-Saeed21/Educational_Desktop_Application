@@ -89,18 +89,18 @@ header{
 }
 
 #homeDiv{
-     margin-top: 100px; /* تأكد من أن الرقم أكبر من أو يساوي ارتفاع الهيدر */
+     margin-top: 100px;
   text-align: center;
   color: white; 
 }
 
 #StartExam {
   display: flex;
-  flex-wrap: wrap; /* يخلي الكروت تنزل تحت لو مفيش مساحة */
+  flex-wrap: wrap; 
   justify-content: center;
   align-items: flex-start;
   margin-top: 40px;
-  gap: 20px; /* مسافة بين الكروت */
+  gap: 20px;
   padding: 20px;
 }
 
@@ -163,7 +163,7 @@ header{
 
 /* question design and Button */
 #homeContainer {
-    margin-top: 120px; /* علشان يكون تحت الـ header */
+    margin-top: 120px; 
     padding: 40px;
     display: flex;
     flex-direction: column;
