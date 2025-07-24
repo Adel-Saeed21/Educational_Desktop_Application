@@ -8,7 +8,7 @@ let currentPassword = null;
 function createWindow() {
     mainWindow = new BrowserWindow({
         height:800,
-        width:1000,
+        width:1200,
         webPreferences:{
             preload:path.join(__dirname, 'preload.js'),
             contextIsolation:true,
@@ -18,6 +18,14 @@ function createWindow() {
     mainWindow.loadFile('src/renderer/home.html');
 
 }
+ipcMain.handle('start-exam', async () => {
+    mainWindow.loadFile('src/renderer/exam_screen.html');
+    return { success: true };
+});
+
+ipcMain.handle('exit-exam', async () => {
+    mainWindow.loadFile('src/renderer/home.html'); });
+    
 
 ipcMain.handle('login',async(event,email,password)=>{
     // currentUser=username;

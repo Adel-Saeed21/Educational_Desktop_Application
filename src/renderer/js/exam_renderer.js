@@ -1,14 +1,3 @@
-window.api.getUsername().then(({ currentUser }) => {
-  document.getElementById('username').innerText = `Welcome, ${currentUser}`;
-});
-
-function logout() {
-  location.href = 'login_screen.html';
-}
-
-
-
-
 // this code to deal with the questions and answers and i hide it in home.html to put it in new file
 const submit = document.getElementById('Submit');
 const exit = document.getElementById('Exit');
@@ -54,6 +43,7 @@ function goToPreviousQuestion() {
   }
 }
 
+
 function saveAnswer() {
   const currentQuestion = questionKeys[currentQuestionIndex];
   questions[currentQuestion] = answerInput.value.trim();
@@ -62,5 +52,13 @@ function saveAnswer() {
 
 nextBtn.addEventListener('click', goToNextQuestion);
 previousBtn.addEventListener('click', goToPreviousQuestion);
+
+exit.addEventListener('click', () => {
+  const confirmExit = confirm('Are you sure you want to exit the exam? Your answers will not be saved.');
+  if (confirmExit) {
+    window.api.exitExam();
+  }
+});
+
 
 updateUI();
