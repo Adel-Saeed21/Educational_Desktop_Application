@@ -14,6 +14,31 @@ const questions = {
   "What's your dream job?": ""
 };
 
+const timerElement = document.getElementById('timer');
+
+window.api.examTimer();
+
+window.api.updateTimer((event, timeLeft) => {
+  const timerElement = document.getElementById('timer');
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+
+
+  timerElement.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+  if (timeLeft <= 10) {
+    timerElement.style.color = 'red';
+    timerElement.style.fontWeight = 'bold';
+    timerElement.style.animation = 'blinker 1s linear infinite'; 
+  } else {
+    timerElement.style.color = '#00ffcc'; 
+    timerElement.style.animation = 'none';
+  }
+});
+
+
+window.api.timerFinished();
+
 const questionKeys = Object.keys(questions);
 let currentQuestionIndex = 0;
 

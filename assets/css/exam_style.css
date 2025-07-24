@@ -17,7 +17,6 @@ body {
 }
 
 
-/* Navigation bar style*/
 
 
 /* question design and Button */
@@ -92,4 +91,30 @@ body {
     background-color: white;
     color: #162938;
     transform: scale(1.05);
+}
+
+.exam-timer {
+    position: absolute;
+    top: 30px;
+    right: 50px;
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 20px 30px;
+    border-radius: 12px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}
+
+.exam-timer h2 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+#timer {
+    font-size: 2em;
+    font-weight: bold;
+    color: #00ffcc;
+    font-family: 'Courier New', Courier, monospace;
 }

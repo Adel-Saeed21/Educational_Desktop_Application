@@ -18,6 +18,22 @@ function createWindow() {
     mainWindow.loadFile('src/renderer/home.html');
 
 }
+ipcMain.handle('exam-timer', async () => {
+    const timerDuration = 20; 
+    let timeLeft = timerDuration; 
+    const timerInterval = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            mainWindow.webContents.send('timer-finished');
+        } else {
+            timeLeft--;
+            mainWindow.webContents.send('update-timer', timeLeft);
+        }
+    }, 1000);
+    return { success: true, timerDuration };    
+
+})
+
 ipcMain.handle('start-exam', async () => {
     mainWindow.loadFile('src/renderer/exam_screen.html');
     return { success: true };
@@ -27,24 +43,29 @@ ipcMain.handle('exit-exam', async () => {
     mainWindow.loadFile('src/renderer/home.html'); });
     
 
-ipcMain.handle('login',async(event,email,password)=>{
-    // currentUser=username;
-    // currentPassword=password;
-    // mainWindow.loadFile('src/renderer/home.html');
-    const response=await axios.post('http://localhost:8000/api/auth/login/',{
-            email:email,
-            password:password,
-    }).then((response) => {
+ipcMain.handle('login', async (event, email, password) => {
+    if (!email || !password) {
+        return { success: false, message: 'Email and password are required.' };
+    }
+
+    try {
+        const response = await axios.post('https://quizroom-backend-production.up.railway.app/api/auth/login/', {
+            email,
+            password,
+        });
+
         currentUser = response.data.user.name;
         currentPassword = response.data.user.password;
+
         mainWindow.loadFile('src/renderer/home.html');
-        return {success: true, user: response.data.user};
-    }).catch((error) => {
+
+        return { success: true, user: response.data.user };
+    } catch (error) {
         console.error('Login failed:', error);
-        return {success: false, message: 'Login failed. Please check your credentials.'};
-    });
-    return response;
+        return { success: false, message: 'Login failed. Please check your credentials.' };
+    }
 });
+
 
 ipcMain.on('logout', (event) => {
     currentUser = null;
