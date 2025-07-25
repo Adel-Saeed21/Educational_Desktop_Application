@@ -88,80 +88,85 @@ header{
 
 }
 
-#homeDiv{
-     margin-top: 100px;
-  text-align: center;
-  color: white; 
+
+
+#yourCourse {
+    margin-top: 120px;
+    text-align: center;
+    color: white;
 }
 
-#StartExam {
-  display: flex;
-  flex-wrap: wrap; 
-  justify-content: center;
-  align-items: flex-start;
-  margin-top: 40px;
-  gap: 20px;
-  padding: 20px;
+#yourCourse h2 {
+    font-size: 2em;
+    margin-bottom: 10px;
 }
 
-
-
-.exam-card {
-  width: 250px;
-  padding: 20px 25px;
-  border-radius: 12px;
-  background-color: #fff;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  text-align: center;
+#yourCourse p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
 }
 
-
-.exam-card h2 {
-  margin-bottom: 20px;
-  color: #2c3e50;
+#courseList {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 0 20px 50px;
 }
 
-.exam-card p {
-  margin: 10px 0;
-  font-size: 16px;
-  color: #34495e;
-}
-
-
-
-
-#StartExamButton {
-  margin-top: 20px;
-  background-color: #27ae60;
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  transition: background-color 0.3s;
-}
-
-#StartExamButton:hover {
-  background-color: #219150;
-}
-
-#StartExamButton img {
-  width: 20px;
-  height: 20px;
+.course-card {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    width: 300px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 
+.course-card:hover {
+    transform: translateY(-10px);
+}
+
+.course-card h2 {
+    color: #162938;
+    margin-bottom: 15px;
+}
+
+.course-card p {
+    margin: 8px 0;
+    color: #333;
+}
+
+.course-card button {
+    margin-top: auto;
+    padding: 10px 20px;
+    background-color: #162938;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1em;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.course-card button:hover {
+    background-color: #0e1c29;
+}
 
 
 
 
 
 
-/* question design and Button */
+
+
+/* 
+/* question design and Button 
 #homeContainer {
     margin-top: 120px; 
     padding: 40px;
@@ -207,7 +212,7 @@ header{
     background-color: rgba(255, 255, 255, 0.15);
 }
 /* Button container */
-
+/*
 .button-container {
     margin-top: 30px;
     display: flex;
@@ -233,4 +238,4 @@ header{
     background-color: white;
     color: #162938;
     transform: scale(1.05);
-}
+} */

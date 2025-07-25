@@ -5,83 +5,58 @@ window.api.getUsername().then(({ currentUser }) => {
 function logout() {
   location.href = 'login_screen.html';
 }
-const startExamBtn = document.getElementById('StartExam');
-startExamBtn.addEventListener('click', () => {
-  window.api.startEXam().then(response => {
+
+function getCourseList() {
+  window.api.getCourseList().then(response => {
     if (response.success) {
-      console.log('Exam started successfully');
+      const courseList = document.getElementById('courseList');
+      courseList.innerHTML = ''; // Clear existing courses  
+      response.courses.forEach(course => {
+        const courseCard = document.createElement('div');
+        courseCard.classList.add('course-card');
+        courseCard.innerHTML = `
+          <h2>${course.name}</h2>
+          <p><strong>Instructor:</strong> ${course.instructor_name}</p>
+          <p><strong>Level:</strong> ${course.level}</p>
+          <button class="enrollButton">Go</button>
+        `;
+        courseList.appendChild(courseCard);
+      });
     } else {
-      console.error('Failed to start exam:', response.message); }})})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// this code to deal with the questions and answers and i hide it in home.html to put it in new file
-const submit = document.getElementById('Submit');
-const exit = document.getElementById('Exit');
-const nextBtn = document.getElementById('NextQuestion');
-const previousBtn = document.getElementById('Previous');
-const questionElement = document.getElementById('Question');
-const answerInput = document.getElementById('answer');
-
-const questions = {
-  "What's Your name?": "",
-  "What's Your favorite color?": "",
-  "What's your hobby?": "",
-  "What's your favorite food?": "",
-  "What's your dream job?": ""
-};
-
-const questionKeys = Object.keys(questions);
-let currentQuestionIndex = 0;
-
-function updateUI() {
-  const currentQuestion = questionKeys[currentQuestionIndex];
-  questionElement.innerText = currentQuestion;
-  answerInput.value = questions[currentQuestion] || "";
-  previousBtn.style.display = currentQuestionIndex === 0 ? 'none' : 'inline-block';
-  exit.style.display = currentQuestionIndex === 0 ? 'block' : 'none';
-  nextBtn.style.display = currentQuestionIndex === questionKeys.length - 1 ? 'none' : 'inline-block';
-  submit.style.display = currentQuestionIndex === questionKeys.length - 1 ? 'inline-block' : 'none';
+      console.error('Failed to fetch course list:', response.message);
+    }
+  });
 }
-
-function goToNextQuestion() {
-  saveAnswer();
-  if (currentQuestionIndex < questionKeys.length - 1) {
-    currentQuestionIndex++;
-    updateUI();
-  }
-}
-
-function goToPreviousQuestion() {
-  saveAnswer();
-  if (currentQuestionIndex > 0) {
-    currentQuestionIndex--;
-    updateUI();
-  }
-}
-
-function saveAnswer() {
-  const currentQuestion = questionKeys[currentQuestionIndex];
-  questions[currentQuestion] = answerInput.value.trim();
-}
+window.addEventListener('DOMContentLoaded', () => {
+  getCourseList();
+});
 
 
-nextBtn.addEventListener('click', goToNextQuestion);
-previousBtn.addEventListener('click', goToPreviousQuestion);
 
-updateUI();
+  // القائمة اللي فيها الكورسات
+  // const courses = [
+  //   { title: "📘 Math Course", code: "Math101", level: 2 ,Instructor:"Adel Saeed"},
+  //   { title: "🧪 Chemistry Course", code: "Chem202", level: 3 ,Instructor:"Adel Saeed"},
+  //   { title: "💻 Programming Basics", code: "CS100", level: 1 ,Instructor:"Adel Saeed"},
+  //   { title: "🧬 Biology Course", code: "Bio111", level: 2 ,Instructor:"Adel Saeed"}
+  // ];
+
+  // const courseList = document.getElementById("courseList");
+
+  // courses.forEach(course => {
+  //   // إنشاء العنصر
+  //   const card = document.createElement("div");
+  //   card.classList.add("course-card");
+
+  //   // تعبئة المحتوى
+  //   card.innerHTML = `
+  //     <h2>${course.title}</h2>
+  //     <p><strong>Instructor:</strong> ${course.Instructor}</p>
+  //     <p><strong>Code:</strong> ${course.code}</p>
+  //     <p><strong>Level:</strong> ${course.level}</p>
+  //     <button class="enrollButton">Go</button>
+  //   `;
+
+  //   // إضافة للكورس ليست
+  //   courseList.appendChild(card);
+  // });

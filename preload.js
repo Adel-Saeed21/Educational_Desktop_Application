@@ -21,4 +21,6 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.invoke('submit-answers');
         ipcRenderer.invoke('exit-exam');
     }),
+
+    getCourseList: () => ipcRenderer.invoke('get-course-list'),
 });
