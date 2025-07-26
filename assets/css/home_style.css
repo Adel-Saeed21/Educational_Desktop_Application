@@ -17,6 +17,9 @@ body {
   overflow: hidden;
 }
 
+.hidden {
+  display: none;
+}
 
 /* Navigation bar style*/
 header{
@@ -30,6 +33,7 @@ header{
     align-items: center;
     z-index: 99;
 }
+
 #username{
     font-size: 2em;
     color: white;
@@ -90,20 +94,68 @@ header{
 
 
 
-#yourCourse {
-    margin-top: 120px;
+main#mainContent {
+  margin-top: 100px; /* تعويض للهيدر الثابت */
+  padding: 20px;
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#resultContent {
+    margin-top: 20px;
     text-align: center;
     color: white;
 }
+/* #mainContent > div {
+  margin: 0; 
+  padding: 0;
+} */
 
-#yourCourse h2 {
+
+#resultContent h2 {
     font-size: 2em;
     margin-bottom: 10px;
 }
 
-#yourCourse p {
+#resultContent p {
     font-size: 1.2em;
     margin-bottom: 30px;
+}
+
+#resultList {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 0 20px 50px;
+}
+
+
+#yourQuizes {
+    margin-top: 20px;
+    text-align: center;
+    color: white;
+}
+
+#yourQuizes h2 {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+#yourQuizes p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+}
+
+#quizesList {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 0 20px 50px;
 }
 
 #courseList {
@@ -159,83 +211,114 @@ header{
 }
 
 
-
-
-
-
-
-
-/* 
-/* question design and Button 
-#homeContainer {
-    margin-top: 120px; 
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: white;
+#homeDiv{
+     margin-top: 100px;
+  text-align: center;
+  color: white; 
 }
 
-#Question {
-    font-size: 1.5em;
-    font-weight: 500;
-    margin-bottom: 20px;
-    text-align: center;
-    background-color: rgba(0, 0, 0, 0.4);
-    padding: 10px 20px;
-    border-radius: 8px;
-    width: 100%;
-    max-width: 1250px;
+#StartExam {
+  display: flex;
+  flex-wrap: wrap; 
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 40px;
+  gap: 20px;
+  padding: 20px;
 }
 
-#answer {
-    width: 100%;
-    max-width: 1250px;
-    height: 150px;
-    padding: 15px;
-    font-size: 1em;
-    border: 2px solid white;
-    border-radius: 8px;
-    resize: none;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: white;
-    outline: none;
-    transition: border-color 0.3s ease, background-color 0.3s ease;
+
+
+.exam-card {
+  width: 250px;
+  padding: 20px 25px;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+   transition: transform 0.3s ease;
 }
 
-#answer::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+
+.exam-card h2 {
+  margin-bottom: 20px;
+  color: #2c3e50;
 }
 
-#answer:focus {
-    border-color: #00bfff;
-    background-color: rgba(255, 255, 255, 0.15);
-}
-/* Button container */
-/*
-.button-container {
-    margin-top: 30px;
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-    gap: 250px  ;
+.exam-card p {
+  margin: 10px 0;
+  font-size: 16px;
+  color: #34495e;
 }
 
-.button-container button {
-    padding: 12px 24px;
-    font-size: 1em;
-    font-weight: 500;
-    color: white;
-    background-color: transparent;
-    border: 2px solid white;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 140px;
+.exam-card:hover {
+  transform: translateY(-10px);
+  transition: transform 0.3s ease;
 }
 
-.button-container button:hover {
-    background-color: white;
-    color: #162938;
-    transform: scale(1.05);
-} */
+
+
+#StartExamButton {
+  margin-top: 20px;
+  background-color: #162938;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background-color 0.3s;
+}
+
+#StartExamButton:hover {
+  background-color: #162938;
+}
+
+#StartExamButton img {
+  width: 20px;
+  height: 20px;
+}
+
+.exam-card button {
+  margin-top: 20px;
+  background-color: #162938;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s ease;
+  max-width: 150px;
+  justify-content: center;
+  overflow: hidden;
+}
+.exam-card button img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+
+
+
+.loader {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 30px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

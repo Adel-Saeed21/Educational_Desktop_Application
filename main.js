@@ -137,6 +137,43 @@ ipcMain.handle("get-course-list", async () => {
   }
 });
 
+//------------------------------------------------------------
+ipcMain.handle("get-current-quizes",async()=>{
+  if(!studentToken){
+    return { success: false, message: "Unauthorized. Please login first." };
+  }
+
+  try{
+    const responseOfCurrentQuizes=await axios.get("https://quizroom-backend-production.up.railway.app/api/student/quizzes/current/",
+
+      {
+        headers: {
+          Authorization: `Bearer ${studentToken}`,
+        },
+      }
+    );
+
+        return { success: true, quizes: responseOfCurrentQuizes.data };
+
+  }catch(error){
+      console.error("Failed to fetch course list:", error.message);
+    return {
+      success: false,
+      message: "Failed to fetch Current Quizes.",
+    };
+  }
+
+
+
+})
+
+
+
+
+
+
+
+
 // -------------------- Logout --------------------
 
 ipcMain.on("logout", () => {

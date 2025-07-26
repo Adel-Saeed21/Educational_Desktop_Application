@@ -4,36 +4,43 @@
   <meta charset="UTF-8">
   <title>Home</title>
   <link rel="stylesheet" href="../../assets/css/home_style.css">
-
+  <style>
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <header>
     <h1 id="username">Welcome</h1>
     <nav class="navigation">
-
-      <a href="#">Current</a>
-      <a href="#" >Result</a>
-    <button id="logoutBtn" onclick="logout()">Logout</button>
-
+      <a href="#" id="currentBtn">Current</a>
+      <a href="#" id="resultBtn">Result</a>
+      <button id="logoutBtn" onclick="logout()">Logout</button>
     </nav>
-    </header>
-    <div id="yourCourse">
-      <h2>Your Course</h2>
-      <p>Here are your available Courses:</p>
+  </header>
+
+<main id="mainContent">
+  <div id="currentContent">
+    <div id="yourQuizes">
+      <h2>Your Quizes</h2>
+      <p>Here are your available Quizes:</p>
     </div>
-  <div id="courseList">
-    
+      <div id="loader" class="loader" style="display: none;"></div>
+      <div id="StartExam" class="exam-list"></div>
+   
+  </div>
+
+  <div id="resultContent" class="hidden">
+    <div id="yourResults">
+      <h2>Your Result</h2>
+      <p>Here are your available Courses Results:</p>
     </div>
+    <div id="courseList"></div>
+  </div>
+</main>
 
-    
-  
 
-  <script src="./js/home_renderer.js">
-    
-  </script>
-
+  <script src="./js/home_renderer.js"></script>
 </body>
 </html>
-
-
-

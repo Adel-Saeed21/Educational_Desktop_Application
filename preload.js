@@ -23,4 +23,5 @@ contextBridge.exposeInMainWorld('api', {
     }),
 
     getCourseList: () => ipcRenderer.invoke('get-course-list'),
+    getCurrentQuizes:()=> ipcRenderer.invoke('get-current-quizes')
 });

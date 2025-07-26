@@ -6,6 +6,81 @@ function logout() {
   location.href = 'login_screen.html';
 }
 
+const currentBtn = document.getElementById("currentBtn");
+const resultBtn = document.getElementById("resultBtn");
+
+const currentContent = document.getElementById("currentContent");
+const resultContent = document.getElementById("resultContent");
+
+currentBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  currentContent.classList.remove("hidden");
+  resultContent.classList.add("hidden");
+});
+
+resultBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  resultContent.classList.remove("hidden");
+  currentContent.classList.add("hidden");
+});
+
+
+
+
+
+
+function getCurrentQuizes() {
+  const container = document.getElementById('StartExam');
+  const loader = document.getElementById('loader');
+  container.innerHTML = ''; 
+  loader.style.display = 'block'; 
+
+  window.api.getCurrentQuizes().then(response => {
+    loader.style.display = 'none'; 
+
+    if (response.success) {
+      response.quizes.forEach((exam) => {
+        const examCard = document.createElement('div');
+        examCard.className = 'exam-card';
+        examCard.innerHTML = `
+          <h2>${exam.title}</h2>
+          <p><strong>Time:</strong> ${exam.duration} hour(s)</p>
+          <p><strong>Total Points:</strong> ${exam.total_points}</p>
+          <button class="StartExamButton" data-id="${exam.id}">
+            <img src="../../assets/start.png" alt="Start Icon">
+            Start Exam
+          </button>
+        `;
+        container.appendChild(examCard);
+      });
+
+      const allStartButtons = document.querySelectorAll('.StartExamButton');
+      allStartButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+          const examId = e.currentTarget.dataset.id;
+          window.api.startExam(examId).then(response => {
+            if (response.success) {
+              console.log(`Exam ${examId} started successfully`);
+            } else {
+              console.error('Failed to start exam:', response.message);
+            }
+          });
+        });
+      });
+
+    } else {
+      console.error('Failed to load exams:', response.message);
+      container.innerHTML = `<p style="color:red;">${response.message}</p>`;
+    }
+  });
+}
+
+
+
+
+
+
+
 function getCourseList() {
   window.api.getCourseList().then(response => {
     if (response.success) {
@@ -29,34 +104,47 @@ function getCourseList() {
 }
 window.addEventListener('DOMContentLoaded', () => {
   getCourseList();
+  getCurrentQuizes();
 });
 
 
 
-  // القائمة اللي فيها الكورسات
-  // const courses = [
-  //   { title: "📘 Math Course", code: "Math101", level: 2 ,Instructor:"Adel Saeed"},
-  //   { title: "🧪 Chemistry Course", code: "Chem202", level: 3 ,Instructor:"Adel Saeed"},
-  //   { title: "💻 Programming Basics", code: "CS100", level: 1 ,Instructor:"Adel Saeed"},
-  //   { title: "🧬 Biology Course", code: "Bio111", level: 2 ,Instructor:"Adel Saeed"}
-  // ];
 
-  // const courseList = document.getElementById("courseList");
 
-  // courses.forEach(course => {
-  //   // إنشاء العنصر
-  //   const card = document.createElement("div");
-  //   card.classList.add("course-card");
 
-  //   // تعبئة المحتوى
-  //   card.innerHTML = `
-  //     <h2>${course.title}</h2>
-  //     <p><strong>Instructor:</strong> ${course.Instructor}</p>
-  //     <p><strong>Code:</strong> ${course.code}</p>
-  //     <p><strong>Level:</strong> ${course.level}</p>
-  //     <button class="enrollButton">Go</button>
-  //   `;
 
-  //   // إضافة للكورس ليست
-  //   courseList.appendChild(card);
-  // });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
