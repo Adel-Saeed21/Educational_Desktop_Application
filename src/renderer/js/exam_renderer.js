@@ -9,9 +9,27 @@ const timerElement = document.getElementById('timer');
 let quizQuestions = [];
 let answers = {};
 let currentQuestionIndex = 0;
-
+let timer;
+window.api.getQuizData().then((response) => {
+  console.log('-----------------------------\n', JSON.stringify(response, null, 2), '\n\n');
+  timer=response.duration;
+  if (response && response.questions) {
+    quizQuestions = response.questions;
+    updateUI();
+  } else {
+    questionElement.innerText = 'Failed to load quiz questions.';
+  }
+});
 // ✅ Timer functions
-window.api.examTimer();
+
+window.api.examTimer().then((res) => {
+  if (res.success) {
+    console.log("✅ Timer started:", res.timerDuration);
+    updateTimerDisplay(res.timerDuration); 
+  }
+});
+
+
 
 window.api.updateTimer((event, timeLeft) => {
   const minutes = Math.floor(timeLeft / 60);
@@ -35,7 +53,12 @@ function updateUI() {
   const question = quizQuestions[currentQuestionIndex];
   if (!question) return;
 
-  questionElement.innerText = `Q${currentQuestionIndex + 1}: ${question.question_text} (${question.points} pts)`;
+  // Update question text
+  document.getElementById('questionText').innerText = `Q${currentQuestionIndex + 1}: ${question.question_text}`;
+
+  const pointsContainer = document.getElementById('questionPoints');
+  pointsContainer.querySelector('span:last-child').innerText = `${question.points} pts`;
+
   answerInput.value = answers[question.id] || "";
 
   previousBtn.style.display = currentQuestionIndex === 0 ? 'none' : 'inline-block';
@@ -43,6 +66,15 @@ function updateUI() {
   nextBtn.style.display = currentQuestionIndex === quizQuestions.length - 1 ? 'none' : 'inline-block';
   submit.style.display = currentQuestionIndex === quizQuestions.length - 1 ? 'inline-block' : 'none';
 }
+
+function updateTimerDisplay(timeLeft) {
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+
+  timerElement.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+
 
 function saveAnswer() {
   const question = quizQuestions[currentQuestionIndex];
@@ -81,16 +113,7 @@ submit.addEventListener('click', () => {
   console.log("Submitted answers:", answers);
 });
 
-window.api.getQuizData().then((response) => {
-  console.log('-----------------------------\n', JSON.stringify(response, null, 2), '\n\n');
-  
-  if (response && response.questions) {
-    quizQuestions = response.questions;
-    updateUI();
-  } else {
-    questionElement.innerText = 'Failed to load quiz questions.';
-  }
-});
+
 
 // Show recording status if element exists
 const recordingStatus = document.getElementById('recordingStatus');

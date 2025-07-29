@@ -119,13 +119,47 @@ body {
     font-family: 'Courier New', Courier, monospace;
 }
 
-.question-points {
-    font-size: 1em;
-    font-weight: 400;
-    color: #ffd700;
-    margin-bottom: 20px;
-    text-align: center;
+.question-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 20px 30px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1250px;
+  margin-bottom: 20px;
 }
+
+.question-text {
+  font-size: 1.4em;
+  font-weight: 500;
+  color: white;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.question-points {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #0f1f2e, #000b19);
+  border-left: 4px solid #7200ef;
+  padding: 6px 14px;
+  color: #7d8892;
+  font-size: 0.95rem;
+  font-weight: bold;
+  border-radius: 8px;
+  margin-left: 20px;
+  white-space: nowrap;
+}
+
+.question-points .icon {
+  font-size: 1rem;
+  color: #7200ef;
+}
+
+
 
 /*Recording*/
 #recordingContainer {

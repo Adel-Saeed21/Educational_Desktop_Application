@@ -1,17 +1,9 @@
 const { default: axios } = require("axios");
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
+let timer;
 
-// const Store = require('electron-store');
-// const userStore = new Store({
-//   name: 'user-preferences',
-//   defaults: {
-//     studentToken: null,
-//     currentUser: '',
-//     currentPassword: '',
-//   },
-//   encryptionKey: 'secret-key-123'  // اختيارية للتشفير
-// });
+
 
 
 let mainWindow;
@@ -53,20 +45,26 @@ mainWindow.loadFile("src/renderer/home.html");
 
 // IPC handlers for exam timer , start exam and exit exam
 
-ipcMain.handle("exam-timer", async () => {
-  const timerDuration = 20;
-  let timeLeft = timerDuration;
-  const timerInterval = setInterval(() => {
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
+ipcMain.handle("exam-timer", () => {
+  if (global.timerInterval) {
+    clearInterval(global.timerInterval);
+  }
+
+  global.timerValue = global.timer; 
+  global.timerInterval = setInterval(() => {
+    if (global.timerValue <= 0) {
+      clearInterval(global.timerInterval);
+      global.timerInterval = null;
       mainWindow.webContents.send("timer-finished");
     } else {
-      timeLeft--;
-      mainWindow.webContents.send("update-timer", timeLeft);
+      global.timerValue--;
+      mainWindow.webContents.send("update-timer", global.timerValue);
     }
   }, 1000);
-  return { success: true, timerDuration };
+
+  return { success: true, timerDuration: global.timer };
 });
+
 
 ipcMain.handle("start-exam", async (event , id) => {
   try{
@@ -76,7 +74,10 @@ ipcMain.handle("start-exam", async (event , id) => {
           Authorization: `Bearer ${studentToken}`,
         },
       });
+
 global.quizData = responseOfQuizesList.data;
+global.timer = responseOfQuizesList.data.duration * 60; 
+
 console.log("-------------------------------------\n", global.quizData, "\n\n");
 await mainWindow.loadFile("src/renderer/exam_screen.html");
 return {success:true};
@@ -94,8 +95,13 @@ ipcMain.handle("get-quiz-data", async () => {
 });
 
 ipcMain.handle("exit-exam", async () => {
+  if (global.timerInterval) {
+    clearInterval(global.timerInterval);
+    global.timerInterval = null;
+  }
   mainWindow.loadFile("src/renderer/home.html");
 });
+
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
