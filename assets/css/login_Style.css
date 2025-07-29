@@ -1,7 +1,7 @@
 body, html {
     height: 100%;
     margin: 0;
-    background-image: url('../login_background.JPG');
+    background-color: #000b19; /* خلفية رئيسية */
     background-size: cover;
     background-position: center;
 }
@@ -11,30 +11,51 @@ body {
     justify-content: center;
     align-items: center;
     font-family: Arial, sans-serif;
+    color: #ffffff;
 }
 
 #loginFormContainer {
-    background: #ffe6f0;
+    background: #0f1f2e; /* لون الشريط الجانبي / فورم */
     padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
     width: 400px;
     animation: slideIn 0.8s ease-out;
 }
 
-@keyframes slideIn {
-    from {
-        transform: translateY(-50px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+.text-center {
+    color: #ffffff;
+}
+
+input, select, textarea {
+    background-color: #000b19;
+    color: #ffffff;
+    border: 1px solid #7d8892;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+input::placeholder {
+    color: #7d8892;
 }
 
 #loginButton {
-    margin-top: 10px;
+    margin-top: 15px;
+    background-color: #7200ef;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: bold;
+    width: 100%;
+}
+
+#loginButton:hover {
+    background-color: #5d00c4; /* بنفسجي أغمق شوية عند الهوف */
 }
 
 .toggle-eye {
@@ -46,17 +67,17 @@ body {
     height: 24px;
     transform: translateY(-50%);
     z-index: 10;
+    filter: invert(80%);
 }
 
 .toggle-eye:hover {
     opacity: 0.7;
 }
 
-
 #snackbar {
     visibility: hidden;
     min-width: 250px;
-    background-color: #e74c3c;
+    background-color: #e74c3c; 
     color: white;
     text-align: center;
     border-radius: 8px;
@@ -72,6 +93,17 @@ body {
 #snackbar.show {
     visibility: visible;
     animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 @keyframes fadein {

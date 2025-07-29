@@ -3,7 +3,7 @@ window.api.getUsername().then(({ currentUser }) => {
 });
 
 function logout() {
-  location.href = 'login_screen.html';
+   window.api.logout();
 }
 
 const currentBtn = document.getElementById("currentBtn");
@@ -40,24 +40,24 @@ function getCurrentQuizes() {
 
     if (response.success) {
       response.quizes.forEach((exam) => {
-        const examCard = document.createElement('div');
-        examCard.className = 'exam-card';
-      examCard.innerHTML = `
-  <h2>${exam.title}</h2>
-  <p><strong>Time:</strong> ${exam.duration} hour(s)</p>
-  <p><strong>Total Points:</strong> ${exam.total_points}</p>
-  <label style="display: flex; align-items: center; gap: 5px;">
-    <input type="checkbox" class="examStatusCheckbox" data-id="${exam.id}" disabled>
-    <span>Completed</span>
-  </label>
-  <button class="StartExamButton" data-id="${exam.id}">
-    <img src="../../assets/start.png" alt="Start Icon">
-    Start Exam
-  </button>
-`;
+  const examCard = document.createElement('div');
+  examCard.className = 'exam-card';
 
-        container.appendChild(examCard);
-      });
+  const isSubmitted = exam.submitted; 
+
+  examCard.innerHTML = `
+    <input type="checkbox" class="examStatusCheckbox" data-id="${exam.id}" ${isSubmitted ? 'checked' : ''} disabled />
+    <h2 style="font-size: ${exam.title.length > 15 ? '16px' : '20px'}">${exam.title}</h2>
+    <p><strong>Time:</strong> ${exam.duration} min</p>
+    <p><strong>Total Points:</strong> ${exam.total_points}</p>
+    <button class="StartExamButton" data-id="${exam.id}" ${isSubmitted ? 'disabled' : ''}>
+        Start Exam
+    </button>
+  `;
+
+  container.appendChild(examCard);
+});
+    
 
     const allStartButtons = document.querySelectorAll('.StartExamButton');
 allStartButtons.forEach(button => {
@@ -75,7 +75,6 @@ allStartButtons.forEach(button => {
         const checkbox = document.querySelector(`.examStatusCheckbox[data-id="${examId}"]`);
         if (checkbox) checkbox.checked = true;
 
-        // مفيش داعي هنا لنقل الصفحة لأن ده بيحصل في الـ main process
       } else {
         showSnackbar('Failed to start exam');
         target.disabled = false;
