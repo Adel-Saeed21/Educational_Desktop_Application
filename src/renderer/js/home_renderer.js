@@ -5,83 +5,163 @@ window.api.getUsername().then(({ currentUser }) => {
 function logout() {
   location.href = 'login_screen.html';
 }
-const startExamBtn = document.getElementById('StartExam');
-startExamBtn.addEventListener('click', () => {
-  window.api.startEXam().then(response => {
+
+const currentBtn = document.getElementById("currentBtn");
+const resultBtn = document.getElementById("resultBtn");
+
+const currentContent = document.getElementById("currentContent");
+const resultContent = document.getElementById("resultContent");
+
+currentBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  currentContent.classList.remove("hidden");
+  resultContent.classList.add("hidden");
+});
+
+resultBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  resultContent.classList.remove("hidden");
+  currentContent.classList.add("hidden");
+});
+
+
+
+
+
+
+function getCurrentQuizes() {
+  const container = document.getElementById('StartExam');
+  const loader = document.getElementById('loader');
+  container.innerHTML = ''; 
+  loader.style.display = 'block'; 
+
+  window.api.getCurrentQuizes().then(response => {
+    loader.style.display = 'none'; 
+
     if (response.success) {
-      console.log('Exam started successfully');
+      response.quizes.forEach((exam) => {
+        const examCard = document.createElement('div');
+        examCard.className = 'exam-card';
+      examCard.innerHTML = `
+  <h2>${exam.title}</h2>
+  <p><strong>Time:</strong> ${exam.duration} hour(s)</p>
+  <p><strong>Total Points:</strong> ${exam.total_points}</p>
+  <label style="display: flex; align-items: center; gap: 5px;">
+    <input type="checkbox" class="examStatusCheckbox" data-id="${exam.id}" disabled>
+    <span>Completed</span>
+  </label>
+  <button class="StartExamButton" data-id="${exam.id}">
+    <img src="../../assets/start.png" alt="Start Icon">
+    Start Exam
+  </button>
+`;
+
+        container.appendChild(examCard);
+      });
+
+    const allStartButtons = document.querySelectorAll('.StartExamButton');
+allStartButtons.forEach(button => {
+  button.addEventListener('click', (e) => {
+    const target = e.currentTarget;
+    if (!target) return;
+
+    const examId = parseInt(target.dataset.id);
+    target.disabled = true;
+
+    window.api.startEXam(examId).then(response => {
+      if (response.success) {
+        showSnackbar(`Exam ${examId} started!`);
+
+        const checkbox = document.querySelector(`.examStatusCheckbox[data-id="${examId}"]`);
+        if (checkbox) checkbox.checked = true;
+
+        // مفيش داعي هنا لنقل الصفحة لأن ده بيحصل في الـ main process
+      } else {
+        showSnackbar('Failed to start exam');
+        target.disabled = false;
+      }
+    }).catch(error => {
+      showSnackbar('Something went wrong!');
+      console.error(error);
+      target.disabled = false;
+    });
+  });
+});
+
+
+
     } else {
-      console.error('Failed to start exam:', response.message); }})})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// this code to deal with the questions and answers and i hide it in home.html to put it in new file
-const submit = document.getElementById('Submit');
-const exit = document.getElementById('Exit');
-const nextBtn = document.getElementById('NextQuestion');
-const previousBtn = document.getElementById('Previous');
-const questionElement = document.getElementById('Question');
-const answerInput = document.getElementById('answer');
-
-const questions = {
-  "What's Your name?": "",
-  "What's Your favorite color?": "",
-  "What's your hobby?": "",
-  "What's your favorite food?": "",
-  "What's your dream job?": ""
-};
-
-const questionKeys = Object.keys(questions);
-let currentQuestionIndex = 0;
-
-function updateUI() {
-  const currentQuestion = questionKeys[currentQuestionIndex];
-  questionElement.innerText = currentQuestion;
-  answerInput.value = questions[currentQuestion] || "";
-  previousBtn.style.display = currentQuestionIndex === 0 ? 'none' : 'inline-block';
-  exit.style.display = currentQuestionIndex === 0 ? 'block' : 'none';
-  nextBtn.style.display = currentQuestionIndex === questionKeys.length - 1 ? 'none' : 'inline-block';
-  submit.style.display = currentQuestionIndex === questionKeys.length - 1 ? 'inline-block' : 'none';
-}
-
-function goToNextQuestion() {
-  saveAnswer();
-  if (currentQuestionIndex < questionKeys.length - 1) {
-    currentQuestionIndex++;
-    updateUI();
-  }
-}
-
-function goToPreviousQuestion() {
-  saveAnswer();
-  if (currentQuestionIndex > 0) {
-    currentQuestionIndex--;
-    updateUI();
-  }
-}
-
-function saveAnswer() {
-  const currentQuestion = questionKeys[currentQuestionIndex];
-  questions[currentQuestion] = answerInput.value.trim();
+      console.error('Failed to load exams:', response.message);
+      container.innerHTML = `<p style="color:red;">${response.message}</p>`;
+    }
+  });
 }
 
 
-nextBtn.addEventListener('click', goToNextQuestion);
-previousBtn.addEventListener('click', goToPreviousQuestion);
 
-updateUI();
+
+
+
+
+function getCourseList() {
+  window.api.getCourseList().then(response => {
+    if (response.success) {
+      const courseList = document.getElementById('courseList');
+      courseList.innerHTML = ''; // Clear existing courses  
+      response.courses.forEach(course => {
+        const courseCard = document.createElement('div');
+        courseCard.classList.add('course-card');
+        courseCard.innerHTML = `
+          <h2>${course.name}</h2>
+          <p><strong>Instructor:</strong> ${course.instructor_name}</p>
+          <p><strong>Level:</strong> ${course.level}</p>
+          <button class="enrollButton">Go</button>
+        `;
+        courseList.appendChild(courseCard);
+      });
+    } else {
+      console.error('Failed to fetch course list:', response.message);
+    }
+  });
+}
+window.addEventListener('DOMContentLoaded', () => {
+  getCourseList();
+  getCurrentQuizes();
+  showSnackbar("Login succesfully");
+});
+
+function showSnackbar(message) {
+    const snackbar = document.getElementById('snackbar');
+    snackbar.textContent = message;
+    snackbar.classList.add('show');
+    setTimeout(() => snackbar.classList.remove('show'), 3000);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

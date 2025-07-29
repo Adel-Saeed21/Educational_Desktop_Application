@@ -2,10 +2,12 @@ const { contextBridge, ipcRenderer , desktopCapturer} = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
     login: (email, password) => ipcRenderer.invoke('login', email, password),
-
     getUsername: () => ipcRenderer.invoke('get-username'),
     logout: () => ipcRenderer.send('logout'),
-    startEXam: () => ipcRenderer.invoke('start-exam'),
+
+    // Exam Flow
+    startEXam: (id) => ipcRenderer.invoke('start-exam', id),
+    getQuizData: () => ipcRenderer.invoke('get-quiz-data'), 
     submitAnswer: (question, answer) => ipcRenderer.invoke('submit-answer', question, answer),
     getQuestions: () => ipcRenderer.invoke('get-questions'),
     getAnswers: () => ipcRenderer.invoke('get-answers'),
@@ -14,6 +16,8 @@ contextBridge.exposeInMainWorld('api', {
     previousQuestion: () => ipcRenderer.invoke('previous-question'),
     saveAnswer: (question, answer) => ipcRenderer.invoke('save-answer', question, answer),
     exitExam: () => ipcRenderer.invoke('exit-exam'),
+
+    // Timer
     examTimer: () => ipcRenderer.invoke('exam-timer'),
     updateTimer: (callback) => ipcRenderer.on('update-timer', callback),
     timerFinished: () => ipcRenderer.on('timer-finished', (event) => {
@@ -21,6 +25,12 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.invoke('submit-answers');
         ipcRenderer.invoke('exit-exam');
     }),
+
+    // Courses & Quizzes
+    getCourseList: () => ipcRenderer.invoke('get-course-list'),
+    getCurrentQuizes: () => ipcRenderer.invoke('get-current-quizes'),
+
+    //get Screen Stream
     getScreenStream: async () => {
     const sources = await desktopCapturer.getSources({ types: ['screen'] });
     const source = sources[0];

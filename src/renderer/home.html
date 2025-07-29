@@ -4,71 +4,47 @@
   <meta charset="UTF-8">
   <title>Home</title>
   <link rel="stylesheet" href="../../assets/css/home_style.css">
-
+  <style>
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <header>
     <h1 id="username">Welcome</h1>
     <nav class="navigation">
-
-      <a href="#">Current</a>
-      <a href="#" >Result</a>
-    <button id="logoutBtn" onclick="logout()">Logout</button>
-
+      <a href="#" id="currentBtn">Current</a>
+      <a href="#" id="resultBtn">Result</a>
+      <button id="logoutBtn" onclick="logout()">Logout</button>
     </nav>
-    </header>
+  </header>
 
- 
-  <div id="homeDiv">
-<h2>Daily Quiz</h2>
-<p>Test your knowledge with our daily quiz!</p>
-    <div id="StartExam">
-  <div class="exam-card">
-    <h2>📘 Math Exam</h2>
-    <p><strong>Time:</strong> 1 hour</p>
-    <p><strong>Instructions:</strong> Answer all questions carefully.</p>
-    <button id="StartExamButton">
-      <img src="../../assets/start.png" alt="Start Icon">
-      Start Exam
-    </button>
+<main id="mainContent">
+  <div id="currentContent">
+    <div id="yourQuizes">
+      <h2>Your Quizes</h2>
+      <p>Here are your available Quizes:</p>
+    </div>
+      <div id="loader" class="loader" style="display: none;"></div>
+      <div id="StartExam" class="exam-list"></div>
+   
   </div>
-  <div class="exam-card">
-    <h2>📘 Math Exam</h2>
-    <p><strong>Time:</strong> 1 hour</p>
-    <p><strong>Instructions:</strong> Answer all questions carefully.</p>
-    <button id="StartExamButton">
-      <img src="../../assets/start.png" alt="Start Icon">
-      Start Exam
-    </button>
-  </div>
-  <div class="exam-card">
-    <h2>📘 Math Exam</h2>
-    <p><strong>Time:</strong> 1 hour</p>
-    <p><strong>Instructions:</strong> Answer all questions carefully.</p>
-    <button id="StartExamButton">
-      <img src="../../assets/start.png" alt="Start Icon">
-      Start Exam
-    </button>
-  </div>
-  <div class="exam-card">
-    <h2>📘 Math Exam</h2>
-    <p><strong>Time:</strong> 1 hour</p>
-    <p><strong>Instructions:</strong> Answer all questions carefully.</p>
-    <button id="StartExamButton">
-      <img src="../../assets/start.png" alt="Start Icon">
-      Start Exam
-    </button>
-  </div>
-</div>
+
+  <div id="resultContent" class="hidden">
+    <div id="yourResults">
+      <h2>Your Result</h2>
+      <p>Here are your available Courses Results:</p>
+    </div>
+    <div id="courseList"></div>
   </div>
 
 
-  <script src="./js/home_renderer.js">
-    
-  </script>
+ <div id="snackbar">Login Successfully</div>
 
+</main>
+
+
+  <script src="./js/home_renderer.js"></script>
 </body>
 </html>
-
-
-

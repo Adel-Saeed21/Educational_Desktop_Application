@@ -119,6 +119,14 @@ body {
     font-family: 'Courier New', Courier, monospace;
 }
 
+.question-points {
+    font-size: 1em;
+    font-weight: 400;
+    color: #ffd700;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
 /*Recording*/
 #recordingContainer {
   position: fixed;
