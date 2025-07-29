@@ -231,3 +231,31 @@ app.whenReady().then(createWindow);
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
+
+
+
+//------------------submit-------------------------------
+
+ipcMain.handle("submit-quiz", async (event, quizId, answers) => {
+  if (!studentToken) {
+    return { success: false, message: "Unauthorized. Please login first." };
+  }
+  try {
+    const response = await axios.post(
+      `https://quizroom-backend-production.up.railway.app/api/student/quizzes/${quizId}/submit/`,
+      { answers },
+      {
+        headers: {
+          Authorization: `Bearer ${studentToken}`,
+        },
+      }
+    );
+    return { success: true, detail: response.data.detail };
+  } catch (error) {
+    console.error("Quiz submission failed:", error.message);
+    return {
+      success: false,
+      message: error.response?.data?.detail || "Quiz submission failed.",
+    };
+  }
+});

@@ -107,10 +107,33 @@ exit.addEventListener('click', () => {
   }
 });
 
-submit.addEventListener('click', () => {
+// Submit answers and stop recording
+submit.addEventListener('click', async () => {
   saveAnswer();
   stopRecording();
-  console.log("Submitted answers:", answers);
+
+  // Prepare answers array
+  const answersArray = Object.entries(answers).map(([question_id, answer_text]) => ({
+    question_id: Number(question_id),
+    answer_text
+  }));
+
+  // Get quizId (from your quizQuestions or global state)
+  const quizId = window.quizId || (quizQuestions.length > 0 ? quizQuestions[0].quiz : null);
+
+  if (!quizId) {
+    alert("Quiz ID not found.");
+    return;
+  }
+
+  const result = await window.api.submitQuiz(quizId, answersArray);
+
+  if (result.success) {
+    alert(result.detail);
+    window.api.exitExam();
+  } else {
+    alert(result.message || "Failed to submit quiz.");
+  }
 });
 
 

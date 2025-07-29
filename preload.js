@@ -29,7 +29,11 @@ contextBridge.exposeInMainWorld('api', {
     // Courses & Quizzes
     getCourseList: () => ipcRenderer.invoke('get-course-list'),
     getCurrentQuizes: () => ipcRenderer.invoke('get-current-quizes'),
- checkJustLoggedIn: () => ipcRenderer.invoke("checkJustLoggedIn"),
+    checkJustLoggedIn: () => ipcRenderer.invoke("checkJustLoggedIn"),
+
+    //submit quiz
+    submitQuiz: (quizId, answers) => ipcRenderer.invoke("submit-quiz", quizId, answers),
+    
     //get Screen Stream
     getScreenStream: async () => {
     const sources = await desktopCapturer.getSources({ types: ['screen'] });
