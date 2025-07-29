@@ -77,6 +77,7 @@ exit.addEventListener('click', () => {
 
 submit.addEventListener('click', () => {
   saveAnswer();
+  stopRecording();
   console.log("Submitted answers:", answers);
   // ممكن تبعت answers هنا للباك اند
 });
@@ -160,10 +161,3 @@ function stopRecording() {
 }
 /*stop recording*/
 
-exit.addEventListener('click', () => {
-  const confirmExit = confirm('Are you sure you want to exit the exam? Your answers will not be saved.');
-  if (confirmExit) {
-    stopRecording();
-    window.api.exitExam();
-  }
-});
