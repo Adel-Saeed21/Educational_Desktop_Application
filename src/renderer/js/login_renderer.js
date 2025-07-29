@@ -3,8 +3,16 @@ const form = document.getElementById('loginForm');
 if (form) {
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
+
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
+
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+        if (!emailRegex.test(username)) {
+            showSnackbar('Login faild');
+            return;
+        }
 
         const result = await window.api.login(username, password);
 
@@ -13,6 +21,7 @@ if (form) {
         }
     });
 }
+
 
 const toggleEye = document.getElementById('toggleEye');
 

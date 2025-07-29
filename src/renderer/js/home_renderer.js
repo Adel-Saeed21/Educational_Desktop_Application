@@ -42,31 +42,53 @@ function getCurrentQuizes() {
       response.quizes.forEach((exam) => {
         const examCard = document.createElement('div');
         examCard.className = 'exam-card';
-        examCard.innerHTML = `
-          <h2>${exam.title}</h2>
-          <p><strong>Time:</strong> ${exam.duration} hour(s)</p>
-          <p><strong>Total Points:</strong> ${exam.total_points}</p>
-          <button class="StartExamButton" data-id="${exam.id}">
-            <img src="../../assets/start.png" alt="Start Icon">
-            Start Exam
-          </button>
-        `;
+      examCard.innerHTML = `
+  <h2>${exam.title}</h2>
+  <p><strong>Time:</strong> ${exam.duration} hour(s)</p>
+  <p><strong>Total Points:</strong> ${exam.total_points}</p>
+  <label style="display: flex; align-items: center; gap: 5px;">
+    <input type="checkbox" class="examStatusCheckbox" data-id="${exam.id}" disabled>
+    <span>Completed</span>
+  </label>
+  <button class="StartExamButton" data-id="${exam.id}">
+    <img src="../../assets/start.png" alt="Start Icon">
+    Start Exam
+  </button>
+`;
+
         container.appendChild(examCard);
       });
 
-      const allStartButtons = document.querySelectorAll('.StartExamButton');
-      allStartButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-          const examId = e.currentTarget.dataset.id;
-          window.api.startExam(examId).then(response => {
-            if (response.success) {
-              console.log(`Exam ${examId} started successfully`);
-            } else {
-              console.error('Failed to start exam:', response.message);
-            }
-          });
-        });
-      });
+    const allStartButtons = document.querySelectorAll('.StartExamButton');
+allStartButtons.forEach(button => {
+  button.addEventListener('click', (e) => {
+    const target = e.currentTarget;
+    if (!target) return;
+
+    const examId = parseInt(target.dataset.id);
+    target.disabled = true;
+
+    window.api.startEXam(examId).then(response => {
+      if (response.success) {
+        showSnackbar(`Exam ${examId} started!`);
+
+        const checkbox = document.querySelector(`.examStatusCheckbox[data-id="${examId}"]`);
+        if (checkbox) checkbox.checked = true;
+
+        // مفيش داعي هنا لنقل الصفحة لأن ده بيحصل في الـ main process
+      } else {
+        showSnackbar('Failed to start exam');
+        target.disabled = false;
+      }
+    }).catch(error => {
+      showSnackbar('Something went wrong!');
+      console.error(error);
+      target.disabled = false;
+    });
+  });
+});
+
+
 
     } else {
       console.error('Failed to load exams:', response.message);
@@ -105,20 +127,15 @@ function getCourseList() {
 window.addEventListener('DOMContentLoaded', () => {
   getCourseList();
   getCurrentQuizes();
+  showSnackbar("Login succesfully");
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
+function showSnackbar(message) {
+    const snackbar = document.getElementById('snackbar');
+    snackbar.textContent = message;
+    snackbar.classList.add('show');
+    setTimeout(() => snackbar.classList.remove('show'), 3000);
+}
 
 
 

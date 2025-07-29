@@ -20,6 +20,7 @@ let mainWindow;
 let currentUser=null;
 let currentPassword=null;
 let studentToken=null;
+let quizData;
 
 //in create window function i check if the user is logged in or not
 // if the user is logged in i load home.html otherwise i load login_screen.html
@@ -66,9 +67,29 @@ ipcMain.handle("exam-timer", async () => {
   return { success: true, timerDuration };
 });
 
-ipcMain.handle("start-exam", async () => {
-  mainWindow.loadFile("src/renderer/exam_screen.html");
-  return { success: true };
+ipcMain.handle("start-exam", async (event , id) => {
+  try{
+      console.log("🚀 Received exam ID:", id); // هنا نطبع الـ ID
+      const responseOfQuizesList=await axios.get("https://quizroom-backend-production.up.railway.app/api/quiz/"+id+"/", {
+        headers: {
+          Authorization: `Bearer ${studentToken}`,
+        },
+      });
+global.quizData = responseOfQuizesList.data;
+console.log("-------------------------------------\n", global.quizData, "\n\n");
+await mainWindow.loadFile("src/renderer/exam_screen.html");
+return {success:true};
+}catch(error){
+      console.error("❌ Error fetching exam data:", error.message);
+  return {success:false,message:"failed to fetch questions"}
+
+  }
+  
+  
+  
+});
+ipcMain.handle("get-quiz-data", async () => {
+  return global.quizData || null;
 });
 
 ipcMain.handle("exit-exam", async () => {
@@ -85,7 +106,7 @@ ipcMain.handle("login", async (event, email, password) => {
 
   try {
     const response = await axios.post(
-      "https://quizroom-backend-production.up.railway.app/api/auth/login/",
+      "https://quizroom-backend-production.up.railway.app/api/auth/student-login/",
       { email, password }
     );
 
@@ -166,12 +187,6 @@ ipcMain.handle("get-current-quizes",async()=>{
 
 
 })
-
-
-
-
-
-
 
 
 // -------------------- Logout --------------------
