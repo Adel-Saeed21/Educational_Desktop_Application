@@ -78,10 +78,8 @@ exit.addEventListener('click', () => {
 submit.addEventListener('click', () => {
   saveAnswer();
   console.log("Submitted answers:", answers);
-  // ممكن تبعت answers هنا للباك اند
 });
 
-// ✅ Get quiz data from backend
 window.api.getQuizData().then((response) => {
   console.log('-----------------------------\n', JSON.stringify(response, null, 2), '\n\n');
   

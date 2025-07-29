@@ -13,6 +13,7 @@ const path = require("path");
 //   encryptionKey: 'secret-key-123'  // اختيارية للتشفير
 // });
 
+
 let mainWindow;
 // let currentUser = userStore.get("currentUser") || null;
 // let currentPassword = userStore.get("currentPassword") || null;
