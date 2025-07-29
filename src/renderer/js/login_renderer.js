@@ -4,13 +4,17 @@ if (form) {
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
+        document.getElementById('loader').classList.remove('d-none');
+
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
 
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
         if (!emailRegex.test(username)) {
-            showSnackbar('Login faild');
+            showSnackbar('Login failed');
+
+            document.getElementById('loader').classList.add('d-none');
             return;
         }
 
@@ -19,8 +23,11 @@ if (form) {
         if (!result.success) {
             showSnackbar(result.message || 'Login failed');
         }
+
+        document.getElementById('loader').classList.add('d-none');
     });
 }
+
 
 
 const toggleEye = document.getElementById('toggleEye');

@@ -29,7 +29,7 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
-mainWindow.loadFile("src/renderer/home.html");
+mainWindow.loadFile("src/renderer/login_screen.html");
   // if (studentToken) {
   //   mainWindow.loadFile("src/renderer/home.html");
   // } else {
@@ -104,7 +104,7 @@ ipcMain.handle("exit-exam", async () => {
 
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+let justLoggedIn = false;
 // for Login  i use axios to connect with the backend and electron store to save the token
 ipcMain.handle("login", async (event, email, password) => {
   if (!email || !password) {
@@ -120,11 +120,13 @@ ipcMain.handle("login", async (event, email, password) => {
     studentToken = response.data.access;
     currentUser = response.data.user.name;
     currentPassword = password;
+    justLoggedIn = true; 
     console.log("Login successful:", response.data.access);
 
     // userStore.set("studentToken", studentToken);
     // userStore.set("currentUser", currentUser);
     // userStore.set("currentPassword", currentPassword);
+   //  sessionStorage.setItem('justLoggedIn', 'true');
 
     mainWindow.loadFile("src/renderer/home.html");
 
@@ -137,6 +139,12 @@ ipcMain.handle("login", async (event, email, password) => {
     };
   }
 });
+ipcMain.handle("checkJustLoggedIn", () => {
+  const wasJustLoggedIn = justLoggedIn;
+  justLoggedIn = false;  
+  return wasJustLoggedIn;
+});
+
 
 // -------------------- Fetch Course List --------------------
 

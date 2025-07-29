@@ -1,7 +1,7 @@
 body, html {
     height: 100%;
     margin: 0;
-    background-color: #000b19; /* خلفية رئيسية */
+    background-color: #000b19;
     background-size: cover;
     background-position: center;
 }
@@ -15,7 +15,7 @@ body {
 }
 
 #loginFormContainer {
-    background: #0f1f2e; /* لون الشريط الجانبي / فورم */
+    background: #0f1f2e; 
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
@@ -55,7 +55,27 @@ input::placeholder {
 }
 
 #loginButton:hover {
-    background-color: #5d00c4; /* بنفسجي أغمق شوية عند الهوف */
+    background-color: #5d00c4;
+}
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+
+    background-color: rgba(255, 255, 255, .4); 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+#loader {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1050;
 }
 
 .toggle-eye {
@@ -67,7 +87,7 @@ input::placeholder {
     height: 24px;
     transform: translateY(-50%);
     z-index: 10;
-    filter: invert(80%);
+    filter: invert(30%);
 }
 
 .toggle-eye:hover {

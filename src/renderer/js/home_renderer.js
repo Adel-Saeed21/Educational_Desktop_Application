@@ -123,11 +123,16 @@ function getCourseList() {
     }
   });
 }
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   getCourseList();
   getCurrentQuizes();
-  showSnackbar("Login succesfully");
+
+  const justLoggedIn = await window.api.checkJustLoggedIn();
+  if (justLoggedIn) {
+    showSnackbar("Login successfully");
+  }
 });
+
 
 function showSnackbar(message) {
     const snackbar = document.getElementById('snackbar');

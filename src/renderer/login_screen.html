@@ -11,8 +11,8 @@
         <h1 class="text-center">Welcome back</h1>
         <form id="loginForm">
             <div class="mb-3">
-                <label for="username" class="form-label">Username:</label>
-                <input type="text" id="username" class="form-control" placeholder="Username" required />
+                <label for="username" class="form-label">Email:</label>
+                <input type="text" id="username" class="form-control" placeholder="Email" required />
             </div>
 
             <div class="mb-3 position-relative">
@@ -28,6 +28,13 @@
     </div>
 
     <div id="snackbar">Invalid credentials</div>
+ <div id="loader" class="d-none loader-overlay">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
+
 
     <script src="./js/login_renderer.js"></script>
 </body>

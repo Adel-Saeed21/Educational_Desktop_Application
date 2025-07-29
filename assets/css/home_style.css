@@ -16,6 +16,10 @@ body {
 .hidden {
   display: none;
 }
+html, body {
+  overflow: hidden !important;
+  height: 100%;
+}
 
 /* Navigation bar style*/
 header{
@@ -91,7 +95,7 @@ header{
 
 
 main#mainContent {
-  margin-top: 100px; /* تعويض للهيدر الثابت */
+  margin-top: 100px; 
   padding: 20px;
   color: white;
   text-align: center;
@@ -105,20 +109,17 @@ main#mainContent {
     text-align: center;
     color: white;
 }
-/* #mainContent > div {
-  margin: 0; 
-  padding: 0;
-} */
+
 
 
 #resultContent h2 {
     font-size: 2em;
-    margin-bottom: 10px;
+    margin-bottom: 0px;
 }
 
 #resultContent p {
     font-size: 1.2em;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
 }
 
 #resultList {
@@ -159,7 +160,7 @@ main#mainContent {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  justify-content: flex-start; /* يخلي الكروت كلها تبدأ من الشمال */
+  justify-content: flex-start; 
   padding: 12px;
 }
 
@@ -200,7 +201,7 @@ main#mainContent {
   border: none;
   padding: 10px 16px;
   border-radius: 6px;
-  width: 100%; /* يخلي الزر ياخد عرض الكارت كله */
+  width: 100%; 
   cursor: pointer;
 }
 
@@ -326,7 +327,7 @@ main#mainContent {
 #snackbar {
     visibility: hidden;
     min-width: 250px;
-    background-color: #e74c3c;
+   background-color: #00ff26;
     color: white;
     text-align: center;
     border-radius: 8px;
