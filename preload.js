@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer , desktopCapturer} = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
     login: (email, password) => ipcRenderer.invoke('login', email, password),
@@ -21,4 +21,21 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.invoke('submit-answers');
         ipcRenderer.invoke('exit-exam');
     }),
+    getScreenStream: async () => {
+    const sources = await desktopCapturer.getSources({ types: ['screen'] });
+    const source = sources[0];
+    return await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        mandatory: {
+          chromeMediaSource: 'desktop',
+          chromeMediaSourceId: source.id,
+          minWidth: 1280,
+          maxWidth: 1280,
+          minHeight: 720,
+          maxHeight: 720
+        }
+      }
+    });
+  }
 });

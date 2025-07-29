@@ -87,3 +87,78 @@ exit.addEventListener('click', () => {
 
 
 updateUI();
+
+// Show recording status if element exists
+const recordingStatus = document.getElementById('recordingStatus');
+if (recordingStatus) {
+  recordingStatus.style.display = 'block';
+}
+
+startRecording();
+
+// MediaRecorder and chunks for recording
+let mediaRecorder; 
+let Chunks = []; 
+
+
+
+/*start recording*/
+async function startRecording() {
+  try {
+    const stream = await window.api.getScreenStream();
+    const previewVideo = document.getElementById('screenPreview');
+    if (previewVideo) {
+      previewVideo.srcObject = stream;
+    }
+    Chunks = [];
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        Chunks.push(event.data);
+      }
+    };
+
+    mediaRecorder.onstop = async () => {
+      try {
+        const blob = new Blob(Chunks, { type: 'video/webm' });
+        const buffer = Buffer.from(await blob.arrayBuffer());
+
+        const fs = require('fs');
+        const path = require('path');
+        fs.writeFile(path.join(__dirname, 'exam_recording.webm'), buffer, (err) => {
+          if (err) {
+            console.error('Failed to save recording:', err);
+          } else {
+            console.log('Screen recording saved!');
+          }
+        });
+      } catch (err) {
+        console.error('Error processing recording:', err);
+      }
+    };
+
+    mediaRecorder.start();
+    console.log('Recording started.');
+  } catch (err) {
+    console.error('Failed to start screen recording:', err);
+  }
+}
+/*start recording*/
+
+/*stop recording*/
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+    console.log('Recording stopped.');
+  }
+}
+/*stop recording*/
+
+exit.addEventListener('click', () => {
+  const confirmExit = confirm('Are you sure you want to exit the exam? Your answers will not be saved.');
+  if (confirmExit) {
+    stopRecording();
+    window.api.exitExam();
+  }
+});
