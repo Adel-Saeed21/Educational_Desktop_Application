@@ -26,6 +26,10 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.invoke('exit-exam');
     }),
 
+    //LOCAL storage
+
+      saveToken: (token) => ipcRenderer.invoke('save-token', token),
+  getToken: () => ipcRenderer.invoke('get-token'),
     // Courses & Quizzes
     getCourseList: () => ipcRenderer.invoke('get-course-list'),
     getCurrentQuizes: () => ipcRenderer.invoke('get-current-quizes'),

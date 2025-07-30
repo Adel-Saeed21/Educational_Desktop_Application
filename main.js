@@ -4,15 +4,15 @@ const path = require("path");
 let timer;
 
 
+const Store = require('electron-store').default;
+const store = new Store();
 
 
 let mainWindow;
-// let currentUser = userStore.get("currentUser") || null;
-// let currentPassword = userStore.get("currentPassword") || null;
-// let studentToken = userStore.get("studentToken") || null;
-let currentUser=null;
-let currentPassword=null;
-let studentToken=null;
+let currentUser = store.get("currentUser") || null;
+let currentPassword = store.get("currentPassword") || null;
+let studentToken = store.get("studentToken") || null;
+
 let quizData;
 
 //in create window function i check if the user is logged in or not
@@ -29,17 +29,28 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
-mainWindow.loadFile("src/renderer/login_screen.html");
-  // if (studentToken) {
-  //   mainWindow.loadFile("src/renderer/home.html");
-  // } else {
-    
-  // }
+if (studentToken) {
+  mainWindow.loadFile("src/renderer/home.html");
+} else {
+  mainWindow.loadFile("src/renderer/login_screen.html");
+}
+ 
 
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
 }
+
+
+
+
+ipcMain.handle('save-token', (event, token) => {
+  store.set('refreshToken', token);
+});
+
+ipcMain.handle('get-token', () => {
+  return store.get('refreshToken');
+});
 
 // -------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -68,7 +79,6 @@ ipcMain.handle("exam-timer", () => {
 
 ipcMain.handle("start-exam", async (event , id) => {
   try{
-      console.log("🚀 Received exam ID:", id); // هنا نطبع الـ ID
       const responseOfQuizesList=await axios.get("https://quizroom-backend-production.up.railway.app/api/quiz/"+id+"/", {
         headers: {
           Authorization: `Bearer ${studentToken}`,
@@ -78,11 +88,9 @@ ipcMain.handle("start-exam", async (event , id) => {
 global.quizData = responseOfQuizesList.data;
 global.timer = responseOfQuizesList.data.duration * 60; 
 
-console.log("-------------------------------------\n", global.quizData, "\n\n");
 await mainWindow.loadFile("src/renderer/exam_screen.html");
 return {success:true};
 }catch(error){
-      console.error("❌ Error fetching exam data:", error.message);
   return {success:false,message:"failed to fetch questions"}
 
   }
@@ -123,10 +131,10 @@ ipcMain.handle("login", async (event, email, password) => {
     justLoggedIn = true; 
     console.log("Login successful:", response.data.access);
 
-    // userStore.set("studentToken", studentToken);
-    // userStore.set("currentUser", currentUser);
-    // userStore.set("currentPassword", currentPassword);
-   //  sessionStorage.setItem('justLoggedIn', 'true');
+    store.set('studentToken', studentToken);
+store.set('currentUser', response.data.user.name);
+store.set('currentPassword', password);
+
 
     mainWindow.loadFile("src/renderer/home.html");
 
@@ -210,10 +218,9 @@ ipcMain.on("logout", () => {
   currentUser = null;
   currentPassword = null;
   studentToken = null;
-
-  // userStore.delete("studentToken");
-  // userStore.delete("currentUser");
-  // userStore.delete("currentPassword");
+  store.delete('studentToken');
+store.delete('currentUser');
+store.delete('currentPassword');
 
   mainWindow.loadFile("src/renderer/login_screen.html");
 });
