@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld('api', {
     previousQuestion: () => ipcRenderer.invoke('previous-question'),
     saveAnswer: (question, answer) => ipcRenderer.invoke('save-answer', question, answer),
     exitExam: () => ipcRenderer.invoke('exit-exam'),
+    getResultSolutions:()=>ipcRenderer.invoke("get-result-solutions"),
+      navigateToDetails: () => ipcRenderer.invoke("navigate-to-details"),
 
     // Timer
     examTimer: () => ipcRenderer.invoke('exam-timer'),
@@ -29,7 +31,8 @@ contextBridge.exposeInMainWorld('api', {
     //LOCAL storage
 
       saveToken: (token) => ipcRenderer.invoke('save-token', token),
-  getToken: () => ipcRenderer.invoke('get-token'),
+      getToken: () => ipcRenderer.invoke('get-token'),
+
     // Courses & Quizzes
     getCourseList: () => ipcRenderer.invoke('get-course-list'),
     getCurrentQuizes: () => ipcRenderer.invoke('get-current-quizes'),
@@ -38,6 +41,12 @@ contextBridge.exposeInMainWorld('api', {
     //submit quiz
     submitQuiz: (quizId, answers) => ipcRenderer.invoke("submit-quiz", quizId, answers),
     
+
+
+    //get result
+    getResult:()=>ipcRenderer.invoke("get-result"),
+
+
     //get Screen Stream
     getScreenStream: async () => {
     const sources = await desktopCapturer.getSources({ types: ['screen'] });

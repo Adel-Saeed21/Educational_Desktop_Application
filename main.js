@@ -1,7 +1,7 @@
 const { default: axios } = require("axios");
 const { app, BrowserWindow, ipcMain } = require("electron");
+const { glob } = require("fs");
 const path = require("path");
-let timer;
 
 
 const Store = require('electron-store').default;
@@ -29,7 +29,8 @@ function createWindow() {
       nodeIntegration: false,
     },
   });
-if (studentToken) {
+if ( store.get("studentToken")) {
+console.log("Store contents:", store.store);
   mainWindow.loadFile("src/renderer/home.html");
 } else {
   mainWindow.loadFile("src/renderer/login_screen.html");
@@ -109,6 +110,7 @@ ipcMain.handle("exit-exam", async () => {
   }
   mainWindow.loadFile("src/renderer/home.html");
 });
+
 
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -211,6 +213,46 @@ ipcMain.handle("get-current-quizes",async()=>{
 
 })
 
+ipcMain.handle("navigate-to-details", async () => {
+  if (mainWindow) {
+    await mainWindow.loadFile("src/renderer/details_screen.html");
+  }
+});
+
+
+//----------------------Fetch results
+ipcMain.handle('get-result-solutions',async()=>{
+  return global.answers || null;
+
+
+})
+ipcMain.handle("get-result", async () => {
+  if (!studentToken) {
+    return { success: false, message: "Unauthorized. Please login first." };
+  }
+
+  try {
+    const responseOfResult = await axios.get(
+      `https://quizroom-backend-production.up.railway.app/api/student/submissions/`,
+      {
+        headers: {
+          Authorization: `Bearer ${studentToken}`,
+        },
+      }
+    );
+
+    const submissions = responseOfResult.data;
+    global.answers = submissions[0]?.answers || [];
+
+    return { success: true, results: submissions };
+  } catch (error) {
+    console.error("Failed to result:", error.message);
+    return {
+      success: false,
+      message: "Failed to fetch all Results.",
+    };
+  }
+});
 
 // -------------------- Logout --------------------
 
