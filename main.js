@@ -3,6 +3,8 @@ const { app, BrowserWindow, ipcMain } = require("electron");
 const { glob } = require("fs");
 const path = require("path");
 
+const { dialog } = require('electron');
+const fs = require('fs');
 
 const Store = require('electron-store').default;
 const store = new Store();
@@ -43,7 +45,20 @@ console.log("Store contents:", store.store);
 }
 
 
-
+ipcMain.handle('save-recording', async (event, buffer) => {
+  const { canceled, filePath } = await dialog.showSaveDialog({
+    title: 'Save Exam Recording',
+    defaultPath: 'exam_recording.webm',
+    filters: [{ name: 'WebM Video', extensions: ['webm'] }]
+  });
+  if (canceled || !filePath) return { success: false, message: 'Save canceled.' };
+  try {
+    fs.writeFileSync(filePath, Buffer.from(buffer));
+    return { success: true, message: 'Recording saved!' };
+  } catch (err) {
+    return { success: false, message: 'Failed to save recording.' };
+  }
+});
 
 ipcMain.handle('save-token', (event, token) => {
   store.set('refreshToken', token);

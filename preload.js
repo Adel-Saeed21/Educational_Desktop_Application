@@ -27,7 +27,7 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.invoke('submit-answers');
         ipcRenderer.invoke('exit-exam');
     }),
-
+    saveRecording: (buffer) => ipcRenderer.invoke('save-recording', buffer),
     //LOCAL storage
 
       saveToken: (token) => ipcRenderer.invoke('save-token', token),

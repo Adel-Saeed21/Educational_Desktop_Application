@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const container = document.getElementById("answersContainer");
-
+  const exitResultBtn = document.getElementById('exitResultBtn');
   try {
     const answers = await window.api.getResultSolutions();
 
@@ -25,4 +25,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Error loading result solutions:", error);
     container.innerHTML = "<p style='color: red;'>Error loading results.</p>";
   }
+  
+if (exitResultBtn) {
+  exitResultBtn.addEventListener('click', () => {
+    window.location.href = "home.html";
+  });
+}
 });

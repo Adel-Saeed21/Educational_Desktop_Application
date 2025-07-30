@@ -170,23 +170,19 @@ async function startRecording() {
     };
 
     mediaRecorder.onstop = async () => {
-      try {
-        const blob = new Blob(Chunks, { type: 'video/webm' });
-        const buffer = Buffer.from(await blob.arrayBuffer());
-
-        const fs = require('fs');
-        const path = require('path');
-        fs.writeFile(path.join(__dirname, 'exam_recording.webm'), buffer, (err) => {
-          if (err) {
-            console.error('Failed to save recording:', err);
-          } else {
-            console.log('Screen recording saved!');
-          }
-        });
-      } catch (err) {
-        console.error('Error processing recording:', err);
-      }
-    };
+  try {
+    const blob = new Blob(Chunks, { type: 'video/webm' });
+    const buffer = await blob.arrayBuffer();
+    const result = await window.api.saveRecording(buffer);
+    if (result.success) {
+      alert('Screen recording saved!');
+    } else {
+      alert(result.message);
+    }
+  } catch (err) {
+    console.error('Error processing recording:', err);
+  }
+};
 
     mediaRecorder.start();
     console.log('Recording started.');
