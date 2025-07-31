@@ -37,6 +37,37 @@ This is a prototype for an Educational Desktop Application designed to support s
 - Contributions and suggestions are welcome.
 
 ---
+💾 How to Download & Run the App (Release)
+✅ 1. Download the Release
+
+Go to the Releases section on this GitHub repository and download the .deb file for Linux (e.g. educational-desktop-app_1.0.0_amd64.deb).
+
+    💡 You can find the "Releases" tab near the top-right corner of the GitHub repo page.
+
+✅ 2. Install the App (Linux)
+
+After downloading the .deb file, run the following command to install:
+ ```bash
+ sudo dpkg -i educational-desktop-app_1.0.0_amd64.deb
+```
+
+If you face dependency issues, fix them with:
+
+ ```bash
+sudo apt --fix-broken install
+```
+
+
+🗑 4. Uninstall / Remove the App
+
+To remove the app completely from your system:
+```bash
+sudo apt remove educational-desktop-app
+sudo dpkg -r educational-desktop-app
+```
+
+
+
 To avoid errors when running the project after downloading:
 
 1. Install all dependencies:
