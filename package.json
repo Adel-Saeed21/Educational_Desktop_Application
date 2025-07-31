@@ -1,16 +1,33 @@
 {
-  "name": "prototype",
+  "name": "quiz-room",
   "version": "1.0.0",
+  "description": "Quiz Room Electron App",
   "main": "main.js",
-  "scripts": {
-    "start": "electron ."
+  "author": {
+    "name": "Adel Saeed",
+    "email": "adelsaid284@gmail.com"
   },
-  "keywords": [],
-  "author": "",
   "license": "ISC",
-  "description": "",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.quiz.room",
+    "productName": "Quiz Room",
+    "directories": {
+      "output": "dist"
+    },
+    "linux": {
+      "target": ["deb"],
+      "category": "Utility",
+      "icon": "build/icon.png"
+    }
+  },
   "devDependencies": {
-    "electron": "^37.2.3"
+    "electron": "^37.2.3",
+    "electron-builder": "^26.0.12"
   },
   "dependencies": {
     "axios": "^1.10.0",

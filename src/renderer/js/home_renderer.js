@@ -141,7 +141,7 @@ function getCurrentQuizes() {
     <p><strong>Time:</strong> ${exam.duration} min</p>
     <p><strong>Total Points:</strong> ${exam.total_points}</p>
     <button class="StartExamButton" data-id="${exam.id}" ${isSubmitted ? 'disabled' : ''}>
-        Start Exam
+      ${isSubmitted ? 'Submmitted' : 'Start Exam'}  
     </button>
   `;
 
