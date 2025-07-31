@@ -420,7 +420,12 @@ tbody tr:hover {
     top: 15px;
     right: 15px;
     transform: scale(1.2);
-    accent-color: #7200ef;
+    accent-color: #ccc;
+}
+
+
+.examStatusCheckbox:checked {
+    accent-color: #00cc66; 
 }
 
 

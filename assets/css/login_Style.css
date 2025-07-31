@@ -80,7 +80,7 @@ input::placeholder {
 
 .toggle-eye {
     position: absolute;
-    top: 70%;
+    top: 75%;
     right: 15px;
     cursor: pointer;
     width: 24px;

@@ -20,7 +20,9 @@
       "output": "dist"
     },
     "linux": {
-      "target": ["deb"],
+      "target": [
+        "deb"
+      ],
       "category": "Utility",
       "icon": "build/icon.png"
     }
@@ -31,6 +33,7 @@
   },
   "dependencies": {
     "axios": "^1.10.0",
+    "buffer": "^6.0.3",
     "electron-store": "^10.1.0"
   }
 }

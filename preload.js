@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer , desktopCapturer} = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
     login: (email, password) => ipcRenderer.invoke('login', email, password),
@@ -27,7 +27,6 @@ contextBridge.exposeInMainWorld('api', {
         ipcRenderer.invoke('submit-answers');
         ipcRenderer.invoke('exit-exam');
     }),
-    saveRecording: (buffer) => ipcRenderer.invoke('save-recording', buffer),
     //LOCAL storage
 
       saveToken: (token) => ipcRenderer.invoke('save-token', token),
@@ -47,22 +46,14 @@ contextBridge.exposeInMainWorld('api', {
     getResult:()=>ipcRenderer.invoke("get-result"),
 
 
+
+getSources: () => ipcRenderer.invoke('get-sources'),
+  startRecording: (sourceId) => ipcRenderer.invoke('start-recording', sourceId),
+  stopRecording: () => ipcRenderer.invoke('stop-recording'),
+  saveRecording: (buffer) => ipcRenderer.invoke('save-recording', buffer),
+
+
     //get Screen Stream
-    getScreenStream: async () => {
-    const sources = await desktopCapturer.getSources({ types: ['screen'] });
-    const source = sources[0];
-    return await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        mandatory: {
-          chromeMediaSource: 'desktop',
-          chromeMediaSourceId: source.id,
-          minWidth: 1280,
-          maxWidth: 1280,
-          minHeight: 720,
-          maxHeight: 720
-        }
-      }
-    });
-  }
+  
 });
+

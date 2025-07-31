@@ -1,6 +1,7 @@
 const { default: axios } = require("axios");
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain,desktopCapturer } = require("electron");
 const { glob } = require("fs");
+const os = require('os');
 const path = require("path");
 
 const { dialog } = require('electron');
@@ -8,14 +9,12 @@ const fs = require('fs');
 
 const Store = require('electron-store').default;
 const store = new Store();
-
+let refreshToken;
 
 let mainWindow;
 let currentUser = store.get("currentUser") || null;
 let currentPassword = store.get("currentPassword") || null;
 let studentToken = store.get("studentToken") || null;
-
-let quizData;
 
 //in create window function i check if the user is logged in or not
 // if the user is logged in i load home.html otherwise i load login_screen.html
@@ -29,10 +28,12 @@ function createWindow() {
 
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      contextIsolation: true,
-      nodeIntegration: false,
+        contextIsolation: true,
+  nodeIntegration: false,
+  enableRemoteModule: false,
     },
   });
+ // mainWindow.setMenuBarVisibility(false);
 if ( store.get("studentToken")) {
 console.log("Store contents:", store.store);
   mainWindow.loadFile("src/renderer/home.html");
@@ -46,22 +47,24 @@ console.log("Store contents:", store.store);
   });
 }
 
+ipcMain.handle("save-recording", async (event, arrayBuffer) => {
+  const buffer = Buffer.from(arrayBuffer);
+  const recordingsPath = path.join(os.homedir(), "Videos", "ExamRecordings");
+  fs.mkdirSync(recordingsPath, { recursive: true });
 
-ipcMain.handle('save-recording', async (event, buffer) => {
-  const { canceled, filePath } = await dialog.showSaveDialog({
-    title: 'Save Exam Recording',
-    defaultPath: 'exam_recording.webm',
-    filters: [{ name: 'WebM Video', extensions: ['webm'] }]
-  });
-  if (canceled || !filePath) return { success: false, message: 'Save canceled.' };
-  try {
-    fs.writeFileSync(filePath, Buffer.from(buffer));
-    return { success: true, message: 'Recording saved!' };
-  } catch (err) {
-    return { success: false, message: 'Failed to save recording.' };
-  }
+  const filePath = path.join(recordingsPath, `recording-${Date.now()}.webm`);
+  fs.writeFileSync(filePath, buffer);
+  console.log("✅ Video saved to:", filePath);
 });
 
+ipcMain.handle('get-sources', async () => {
+  const sources = await desktopCapturer.getSources({ types: ['screen'] });
+  return sources.map(source => ({
+    id: source.id,
+    name: source.name,
+    thumbnail: source.thumbnail.toDataURL()
+  }));
+});
 ipcMain.handle('save-token', (event, token) => {
   store.set('refreshToken', token);
 });
@@ -95,27 +98,20 @@ ipcMain.handle("exam-timer", () => {
 });
 
 
-ipcMain.handle("start-exam", async (event , id) => {
-  try{
-      const responseOfQuizesList=await axios.get("https://quizroom-backend-production.up.railway.app/api/quiz/"+id+"/", {
-        headers: {
-          Authorization: `Bearer ${studentToken}`,
-        },
-      });
+ipcMain.handle("start-exam", async (event, id) => {
+  try {
+    const response = await sendAuthorizedRequest("get", `https://quizroom-backend-production.up.railway.app/api/quiz/${id}/`);
+    global.quizData = response.data;
+    global.timer = response.data.duration * 60;
 
-global.quizData = responseOfQuizesList.data;
-global.timer = responseOfQuizesList.data.duration * 60; 
-
-await mainWindow.loadFile("src/renderer/exam_screen.html");
-return {success:true};
-}catch(error){
-  return {success:false,message:"failed to fetch questions"}
-
+    await mainWindow.loadFile("src/renderer/exam_screen.html");
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: "Failed to fetch questions" };
   }
-  
-  
-  
 });
+
+// get  quiz data 
 ipcMain.handle("get-quiz-data", async () => {
   return global.quizData || null;
 });
@@ -131,7 +127,7 @@ ipcMain.handle("exit-exam", async () => {
 
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------
-let justLoggedIn = false;
+let justLoggedIn = false; // do it to check if user visit home screen first once or not 
 // for Login  i use axios to connect with the backend and electron store to save the token
 ipcMain.handle("login", async (event, email, password) => {
   if (!email || !password) {
@@ -144,13 +140,16 @@ ipcMain.handle("login", async (event, email, password) => {
       { email, password }
     );
 
-    studentToken = response.data.access;
+   studentToken = response.data.access;
+ refreshToken = response.data.refresh;
+
+store.set('studentToken', studentToken);
+store.set('refreshToken', refreshToken);
     currentUser = response.data.user.name;
     currentPassword = password;
     justLoggedIn = true; 
     console.log("Login successful:", response.data.access);
 
-    store.set('studentToken', studentToken);
 store.set('currentUser', response.data.user.name);
 store.set('currentPassword', password);
 
@@ -176,20 +175,8 @@ ipcMain.handle("checkJustLoggedIn", () => {
 // -------------------- Fetch Course List --------------------
 
 ipcMain.handle("get-course-list", async () => {
-  if (!studentToken) {
-    return { success: false, message: "Unauthorized. Please login first." };
-  }
-
   try {
-    const response = await axios.get(
-      "https://quizroom-backend-production.up.railway.app/api/student/courses/",
-      {
-        headers: {
-          Authorization: `Bearer ${studentToken}`,
-        },
-      }
-    );
-
+    const response = await sendAuthorizedRequest("get", "https://quizroom-backend-production.up.railway.app/api/student/courses/");
     return { success: true, courses: response.data };
   } catch (error) {
     console.error("Failed to fetch course list:", error.message);
@@ -200,35 +187,21 @@ ipcMain.handle("get-course-list", async () => {
   }
 });
 
+
 //------------------------------------------------------------
-ipcMain.handle("get-current-quizes",async()=>{
-  if(!studentToken){
-    return { success: false, message: "Unauthorized. Please login first." };
-  }
-
-  try{
-    const responseOfCurrentQuizes=await axios.get("https://quizroom-backend-production.up.railway.app/api/student/quizzes/current/",
-
-      {
-        headers: {
-          Authorization: `Bearer ${studentToken}`,
-        },
-      }
-    );
-
-        return { success: true, quizes: responseOfCurrentQuizes.data };
-
-  }catch(error){
-      console.error("Failed to fetch course list:", error.message);
+ipcMain.handle("get-current-quizes", async () => {
+  try {
+    const response = await sendAuthorizedRequest("get", "https://quizroom-backend-production.up.railway.app/api/student/quizzes/current/");
+    return { success: true, quizes: response.data };
+  } catch (error) {
+    console.error("Failed to fetch Current Quizes:", error.message);
     return {
       success: false,
       message: "Failed to fetch Current Quizes.",
     };
   }
+});
 
-
-
-})
 
 ipcMain.handle("navigate-to-details", async () => {
   if (mainWindow) {
@@ -244,26 +217,13 @@ ipcMain.handle('get-result-solutions',async()=>{
 
 })
 ipcMain.handle("get-result", async () => {
-  if (!studentToken) {
-    return { success: false, message: "Unauthorized. Please login first." };
-  }
-
   try {
-    const responseOfResult = await axios.get(
-      `https://quizroom-backend-production.up.railway.app/api/student/submissions/`,
-      {
-        headers: {
-          Authorization: `Bearer ${studentToken}`,
-        },
-      }
-    );
-
-    const submissions = responseOfResult.data;
+    const response = await sendAuthorizedRequest("get", "https://quizroom-backend-production.up.railway.app/api/student/submissions/");
+    const submissions = response.data;
     global.answers = submissions[0]?.answers || [];
-
     return { success: true, results: submissions };
   } catch (error) {
-    console.error("Failed to result:", error.message);
+    console.error("Failed to fetch results:", error.message);
     return {
       success: false,
       message: "Failed to fetch all Results.",
@@ -277,6 +237,7 @@ ipcMain.on("logout", () => {
   currentUser = null;
   currentPassword = null;
   studentToken = null;
+  refreshToken=null;
   store.delete('studentToken');
 store.delete('currentUser');
 store.delete('currentPassword');
@@ -303,18 +264,11 @@ app.on("window-all-closed", () => {
 //------------------submit-------------------------------
 
 ipcMain.handle("submit-quiz", async (event, quizId, answers) => {
-  if (!studentToken) {
-    return { success: false, message: "Unauthorized. Please login first." };
-  }
   try {
-    const response = await axios.post(
+    const response = await sendAuthorizedRequest(
+      "post",
       `https://quizroom-backend-production.up.railway.app/api/student/quizzes/${quizId}/submit/`,
-      { answers },
-      {
-        headers: {
-          Authorization: `Bearer ${studentToken}`,
-        },
-      }
+      { answers }
     );
     return { success: true, detail: response.data.detail };
   } catch (error) {
@@ -325,3 +279,62 @@ ipcMain.handle("submit-quiz", async (event, quizId, answers) => {
     };
   }
 });
+
+
+//-------------------------------------GET ACCESS TOKEN-------------------------------
+async function refreshAccessToken() {
+  const refreshToken = store.get('refreshToken');
+  if (!refreshToken) return null;
+
+  try {
+    const response = await axios.post("https://quizroom-backend-production.up.railway.app/api/auth/refresh/", {
+      refresh: refreshToken
+    });
+
+    const newAccessToken = response.data.access;
+    store.set('studentToken', newAccessToken);
+    studentToken = newAccessToken;
+
+    console.log("Token refreshed successfully");
+    return newAccessToken;
+  } catch (error) {
+    console.error("Failed to refresh token:", error.message);
+    // logout or prompt login again
+    store.delete('refreshToken');
+    store.delete('studentToken');
+    return null;
+  }
+}
+
+async function sendAuthorizedRequest(method, url, data = null) {
+  try {
+    const config = {
+      method,
+      url,
+      headers: {
+        Authorization: `Bearer ${studentToken}`,
+      },
+      data,
+    };
+
+    const response = await axios(config);
+    return response;
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      const newAccess = await refreshAccessToken();
+      if (!newAccess) throw new Error("Unauthorized");
+
+      const retryConfig = {
+        method,
+        url,
+        headers: {
+          Authorization: `Bearer ${newAccess}`,
+        },
+        data,
+      };
+
+      return await axios(retryConfig);
+    }
+    throw error;
+  }
+}

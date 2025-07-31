@@ -6,9 +6,11 @@ const questionElement = document.getElementById('Question');
 const answerInput = document.getElementById('answer');
 const timerElement = document.getElementById('timer');
 
+
 let quizQuestions = [];
 let answers = {};
 let currentQuestionIndex = 0;
+let isRecording = false;
 let timer;
 window.api.getQuizData().then((response) => {
   console.log('-----------------------------\n', JSON.stringify(response, null, 2), '\n\n');
@@ -144,7 +146,16 @@ if (recordingStatus) {
   recordingStatus.style.display = 'block';
 }
 
-startRecording();
+document.addEventListener('DOMContentLoaded', () => {
+  startRecording();
+    setInterval(() => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      console.log('✅ Still recording...');
+    } else {
+      console.warn('⚠️ Not recording!');
+    }
+  }, 10000); 
+});
 
 // MediaRecorder and chunks for recording
 let mediaRecorder; 
@@ -155,45 +166,51 @@ let Chunks = [];
 /*start recording*/
 async function startRecording() {
   try {
-    const stream = await window.api.getScreenStream();
-    const previewVideo = document.getElementById('screenPreview');
-    if (previewVideo) {
-      previewVideo.srcObject = stream;
-    }
-    Chunks = [];
-    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+    const sources = await window.api.getSources();
+    const source = sources[0];
 
-    mediaRecorder.ondataavailable = (event) => {
-      if (event.data.size > 0) {
-        Chunks.push(event.data);
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        mandatory: {
+          chromeMediaSource: 'desktop',
+          chromeMediaSourceId: source.id,
+          minWidth: 1280,
+          maxWidth: 1280,
+          minHeight: 720,
+          maxHeight: 720
+        }
       }
-    };
+    });
 
-    mediaRecorder.onstop = async () => {
-  try {
-    const blob = new Blob(Chunks, { type: 'video/webm' });
-    const buffer = await blob.arrayBuffer();
-    const result = await window.api.saveRecording(buffer);
-    if (result.success) {
-      alert('Screen recording saved!');
-    } else {
-      alert(result.message);
-    }
-  } catch (err) {
-    console.error('Error processing recording:', err);
-  }
+    mediaRecorder = new MediaRecorder(stream);
+    Chunks = [];
+
+    mediaRecorder.ondataavailable = (e) => Chunks.push(e.data);
+ mediaRecorder.onstop = async () => {
+  const blob = new Blob(Chunks, { type: 'video/webm' });
+const arrayBuffer = await blob.arrayBuffer();
+await window.api.saveRecording(arrayBuffer); // ابعت الـ arrayBuffer خام
+
 };
 
+
+
     mediaRecorder.start();
-    console.log('Recording started.');
+    isRecording = true;
+    console.log("✅ Recording started");
   } catch (err) {
-    console.error('Failed to start screen recording:', err);
+    console.error("❌ Failed to start recording:", err);
   }
 }
+
+
 /*start recording*/
 
 /*stop recording*/
 function stopRecording() {
+   if (!isRecording) return;
+  isRecording = false;
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.stop();
     console.log('Recording stopped.');
