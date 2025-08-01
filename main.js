@@ -33,7 +33,7 @@ function createWindow() {
   enableRemoteModule: false,
     },
   });
- // mainWindow.setMenuBarVisibility(false);
+  mainWindow.setMenuBarVisibility(false);
 if ( store.get("studentToken")) {
 console.log("Store contents:", store.store);
   mainWindow.loadFile("src/renderer/home.html");
@@ -46,6 +46,8 @@ console.log("Store contents:", store.store);
     mainWindow = null;
   });
 }
+
+//------------------------------------ Manage Screen Record 
 
 ipcMain.handle("save-recording", async (event, arrayBuffer) => {
   const buffer = Buffer.from(arrayBuffer);
@@ -65,6 +67,9 @@ ipcMain.handle('get-sources', async () => {
     thumbnail: source.thumbnail.toDataURL()
   }));
 });
+
+//-------------------------------------Token Management ---------------------------------------
+
 ipcMain.handle('save-token', (event, token) => {
   store.set('refreshToken', token);
 });

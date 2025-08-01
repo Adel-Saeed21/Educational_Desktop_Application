@@ -111,16 +111,29 @@ exit.addEventListener('click', () => {
 
 // Submit answers and stop recording
 submit.addEventListener('click', async () => {
+  await submitExam();
+});
+
+
+window.onbeforeunload = (e) => {
+const shouldExit = confirm("Are you sure you want to exit? Your answers will be automatically submitted if you leave.");
+
+  if (!shouldExit) {
+    e.preventDefault();
+    return false;
+  }
+  submitExam();
+};
+
+async function submitExam() {
   saveAnswer();
   stopRecording();
 
-  // Prepare answers array
   const answersArray = Object.entries(answers).map(([question_id, answer_text]) => ({
     question_id: Number(question_id),
     answer_text
   }));
 
-  // Get quizId (from your quizQuestions or global state)
   const quizId = window.quizId || (quizQuestions.length > 0 ? quizQuestions[0].quiz : null);
 
   if (!quizId) {
@@ -136,8 +149,7 @@ submit.addEventListener('click', async () => {
   } else {
     alert(result.message || "Failed to submit quiz.");
   }
-});
-
+}
 
 
 // Show recording status if element exists
