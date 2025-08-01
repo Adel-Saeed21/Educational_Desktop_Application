@@ -42,10 +42,28 @@ console.log("Store contents:", store.store);
 }
  
 
-  mainWindow.on("closed", () => {
-    mainWindow = null;
+ mainWindow.on('close', async (e) => {
+  const { response } = await dialog.showMessageBox(mainWindow, {
+    type: 'question',
+    buttons: ['Cancel', 'Exit'],
+    defaultId: 1,
+    cancelId: 0,
+    title: 'Confirm Exit',
+    message: 'Are you sure you want to exit the exam?',
+    detail: 'Your answers will be automatically submitted.',
   });
+
+  if (response === 0) {
+    e.preventDefault(); // Cancel
+  } else {
+    // Send signal to renderer to auto-submit
+    mainWindow.webContents.send('force-exit');
+  }
+});
+
 }
+
+
 
 //------------------------------------ Manage Screen Record 
 

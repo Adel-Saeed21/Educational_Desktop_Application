@@ -102,12 +102,8 @@ function goToPreviousQuestion() {
 nextBtn.addEventListener('click', goToNextQuestion);
 previousBtn.addEventListener('click', goToPreviousQuestion);
 
-exit.addEventListener('click', () => {
-  const confirmExit = confirm('Are you sure you want to exit the exam?');
-  if (confirmExit) {
-    window.api.exitExam();
-  }
-});
+exit.addEventListener('click', confirmAndExit);
+
 
 // Submit answers and stop recording
 submit.addEventListener('click', async () => {
@@ -116,14 +112,12 @@ submit.addEventListener('click', async () => {
 
 
 window.onbeforeunload = (e) => {
-const shouldExit = confirm("Are you sure you want to exit? Your answers will be automatically submitted if you leave.");
-
-  if (!shouldExit) {
-    e.preventDefault();
-    return false;
-  }
-  submitExam();
+  e.preventDefault();
+  confirmAndExit(); 
+  return false;
 };
+
+
 
 async function submitExam() {
   saveAnswer();
@@ -142,6 +136,7 @@ async function submitExam() {
   }
 
   const result = await window.api.submitQuiz(quizId, answersArray);
+
 
   if (result.success) {
     alert(result.detail);
@@ -230,3 +225,11 @@ function stopRecording() {
 }
 /*stop recording*/
 
+
+async function confirmAndExit() {
+  const shouldExit = confirm("Are you sure you want to exit the exam?\nYour answers will be submitted automatically?");
+  if (shouldExit) {
+    await submitExam(); 
+    window.api.exitExam(); 
+  }
+}
