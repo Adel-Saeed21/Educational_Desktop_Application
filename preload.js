@@ -16,7 +16,7 @@ contextBridge.exposeInMainWorld('api', {
     previousQuestion: () => ipcRenderer.invoke('previous-question'),
     saveAnswer: (question, answer) => ipcRenderer.invoke('save-answer', question, answer),
     exitExam: () => ipcRenderer.invoke('exit-exam'),
-    getResultSolutions:()=>ipcRenderer.invoke("get-result-solutions"),
+getResultSolutions: (index) => ipcRenderer.invoke("get-result-solutions", index),
       navigateToDetails: () => ipcRenderer.invoke("navigate-to-details"),
 
     // Timer

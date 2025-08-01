@@ -82,30 +82,42 @@ function showStaticSubmissions() {
 
 
     results.forEach((submission, index) => {
-      html += `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${submission.quiz_title}</td>
-          <td>${submission.status}</td>
-          <td>${submission.grade !== null ? submission.grade : "—"}</td>
-          <td>
-            <button class="view-details-btn" data-index="${index}">View Details</button>
-          </td>
-        </tr>
-      `;
-    });
+  html += `
+    <tr>
+      <td>${index + 1}</td>
+      <td>${submission.quiz_title}</td>
+      <td>${submission.status}</td>
+      <td>${submission.grade !== null ? submission.grade : "—"}</td>
+      <td>
+        <button class="view-details-btn" 
+                data-index="${index}" 
+                data-status="${submission.status}">
+          View Details
+        </button>
+      </td>
+    </tr>
+  `;
+});
 
     html += `</tbody></table>`;
     const submissionTableContainer = document.getElementById("submissionTableContainer");
     submissionTableContainer.innerHTML = html;
 
-    document.querySelectorAll(".view-details-btn").forEach(button => {
-      button.addEventListener("click", (e) => {
-        const index = e.target.getAttribute("data-index");
-        const submission = staticSubmissions[index];
-        localStorage.setItem("currentSubmission", JSON.stringify(submission));
-window.api.navigateToDetails();      });
-    });
+   document.querySelectorAll(".view-details-btn").forEach(button => {
+  button.addEventListener("click", (e) => {
+    const index = e.target.getAttribute("data-index");
+    const status = e.target.getAttribute("data-status");
+
+    if (status.toLowerCase() === "graded") {
+      localStorage.setItem("selectedSubmissionIndex", index);
+      window.api.navigateToDetails();
+    } else {
+      alert("This quiz has not been graded yet.");
+    }
+  });
+});
+
+
   }).catch(err => {
     console.error("Error loading results:", err.message);
   });

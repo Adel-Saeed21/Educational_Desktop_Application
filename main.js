@@ -216,16 +216,17 @@ ipcMain.handle("navigate-to-details", async () => {
 
 
 //----------------------Fetch results
-ipcMain.handle('get-result-solutions',async()=>{
-  return global.answers || null;
+ipcMain.handle('get-result-solutions', async (_, submissionIndex) => {
+  const submissions = global.submissions || [];
+  const selectedSubmission = submissions[submissionIndex];
+  return selectedSubmission?.answers || null;
+});
 
-
-})
 ipcMain.handle("get-result", async () => {
   try {
     const response = await sendAuthorizedRequest("get", "https://quizroom-backend-production.up.railway.app/api/student/submissions/");
     const submissions = response.data;
-    global.answers = submissions[0]?.answers || [];
+    global.submissions = submissions; 
     return { success: true, results: submissions };
   } catch (error) {
     console.error("Failed to fetch results:", error.message);

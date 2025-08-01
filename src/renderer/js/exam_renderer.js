@@ -202,7 +202,7 @@ async function startRecording() {
  mediaRecorder.onstop = async () => {
   const blob = new Blob(Chunks, { type: 'video/webm' });
 const arrayBuffer = await blob.arrayBuffer();
-await window.api.saveRecording(arrayBuffer); // ابعت الـ arrayBuffer خام
+await window.api.saveRecording(arrayBuffer); 
 
 };
 
