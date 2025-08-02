@@ -146,13 +146,24 @@ ipcMain.handle("get-quiz-data", async () => {
 });
 
 
+let isExiting = false;
+
 ipcMain.handle("exit-exam", async () => {
+  if (isExiting) return;
+  isExiting = true;
+
   if (global.timerInterval) {
     clearInterval(global.timerInterval);
     global.timerInterval = null;
   }
-  mainWindow.loadFile("src/renderer/home.html");
+
+  preventClose = false; 
+
+  await mainWindow.loadFile("src/renderer/home.html");
+
+  isExiting = false; 
 });
+
 
 
 
@@ -178,7 +189,7 @@ store.set('refreshToken', refreshToken);
     currentUser = response.data.user.name;
     currentPassword = password;
     justLoggedIn = true; 
-    console.log("Login successful:", response.data.access);
+   // console.log("Login successful:", response.data.access);
 
 store.set('currentUser', response.data.user.name);
 store.set('currentPassword', password);

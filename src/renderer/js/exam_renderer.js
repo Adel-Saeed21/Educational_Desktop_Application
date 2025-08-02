@@ -27,7 +27,7 @@ window.api.examTimer().then((res) => {
   if (res.success) {
     let timeLeft = res.timerDuration;
 
-    updateTimerDisplay(timeLeft); // أول عرض للوقت
+    updateTimerDisplay(timeLeft); 
 
     const countdown = setInterval(() => {
       timeLeft--;
@@ -71,7 +71,7 @@ window.api.timerFinished();
 window.api.setPreventClose(true); 
 
 window.api.onTryExit(() => {
-  showToast(); 
+  showToast('❌ This button is not used to exit the exam.\n Please use the exit button in the window to leave the exam properly'); 
 });
 
 
@@ -141,15 +141,27 @@ submit.addEventListener('click', async () => {
 
 
 
+let hasExited = false;
+
 async function submitExam() {
+  if (hasExited) return;
+  
+  if (!isRecording || !mediaRecorder || mediaRecorder.state !== 'recording') {
+    showToast("Screen recording is not active. You cannot submit the exam.");
+    if (!hasExited) {
+      hasExited = true;
+      window.api.exitExam();
+    }
+    return;
+  }
+
   saveAnswer();
   stopRecording();
 
   const answersArray = Object.entries(answers).map(([question_id, answer_text]) => ({
-  question_id: Number(question_id),
-  answer_text: (answer_text || "").trim()
-}));
-
+    question_id: Number(question_id),
+    answer_text: (answer_text || "").trim()
+  }));
 
   const quizId = window.quizId || (quizQuestions.length > 0 ? quizQuestions[0].quiz : null);
 
@@ -162,7 +174,10 @@ async function submitExam() {
 
   if (result.success) {
     alert(result.detail);
-    window.api.exitExam();
+    if (!hasExited) {
+      hasExited = true;
+      window.api.exitExam();
+    }
   } else {
     alert(result.message || "Failed to submit quiz.");
   }
@@ -216,22 +231,23 @@ async function startRecording() {
     Chunks = [];
 
     mediaRecorder.ondataavailable = (e) => Chunks.push(e.data);
- mediaRecorder.onstop = async () => {
-  const blob = new Blob(Chunks, { type: 'video/webm' });
-const arrayBuffer = await blob.arrayBuffer();
-await window.api.saveRecording(arrayBuffer); 
-
-};
-
-
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(Chunks, { type: 'video/webm' });
+      const arrayBuffer = await blob.arrayBuffer();
+      await window.api.saveRecording(arrayBuffer);
+    };
 
     mediaRecorder.start();
     isRecording = true;
     console.log("✅ Recording started");
   } catch (err) {
-    console.error("❌ Failed to start recording:", err);
+    // ✅ Show message then exit to home
+    showToast("❌ Screen recording permission denied. You cannot start the exam.");
+    await new Promise((resolve) => setTimeout(resolve, 2500)); // wait for toast to show
+    window.api.exitExam(); // return to home safely
   }
 }
+
 
 
 /*start recording*/
@@ -248,14 +264,15 @@ function stopRecording() {
 /*stop recording*/
 
 
-function showToast() {
+function showToast(message) {
   const toast = document.getElementById("toast");
+  toast.textContent = message; 
   toast.style.display = "block";
   setTimeout(() => {
     toast.style.display = "none";
   }, 3000);
 }
-window.api.onTryExit(() => {
-  showToast();
-});
 
+window.api.onTryExit(() => {
+  showToast("❌ This button is not used to exit the exam. Please use the exit button in the window to leave the exam properly");
+});
