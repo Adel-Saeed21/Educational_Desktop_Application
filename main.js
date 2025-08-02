@@ -4,7 +4,7 @@ const { glob } = require("fs");
 const os = require('os');
 const path = require("path");
 const examTimer = require("./service/examTimerService");
-
+const fetch = require('node-fetch');
 const { dialog } = require('electron');
 const fs = require('fs');
 
@@ -380,3 +380,55 @@ async function sendAuthorizedRequest(method, url, data = null) {
     throw error;
   }
 }
+//---------------------OTP---------------------
+
+ipcMain.handle('send-otp', async (event, email) => {
+    // Always return success and a generic message immediately
+    setImmediate(async () => {
+        try {
+            await fetch('https://quizroom-backend-production.up.railway.app/api/auth/request-password-reset/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+        } catch (err) {
+        }
+    });
+    return { success: true, message: "Checking email..." };
+});
+
+ipcMain.handle('verify-otp', async (event, { email, otp }) => {
+    try {
+        const response = await fetch('https://quizroom-backend-production.up.railway.app/api/auth/verify-otp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, otp })
+        });
+        const data = await response.json();
+        if (response.ok && data.detail === "OTP verified successfully.") {
+            return { success: true, message: data.detail };
+        } else {
+            return { success: false, message: data.detail || "Invalid or expired OTP." };
+        }
+    } catch (err) {
+        return { success: false, message: 'Network error' };
+    }
+});
+
+ipcMain.handle('reset-password', async (event, { email, otp, newPassword }) => {
+    try {
+        const response = await fetch('https://quizroom-backend-production.up.railway.app/api/auth/reset-password/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, otp, new_password: newPassword })
+        });
+        const data = await response.json();
+        if (response.ok && data.detail === "Password has been reset.") {
+            return { success: true, message: data.detail };
+        } else {
+            return { success: false, message: data.detail || "Password reset failed." };
+        }
+    } catch (err) {
+        return { success: false, message: 'Network error' };
+    }
+});

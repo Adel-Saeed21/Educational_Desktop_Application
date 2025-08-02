@@ -50,4 +50,8 @@ contextBridge.exposeInMainWorld('api', {
   startTimer: (duration) => ipcRenderer.send('start-timer', duration),
 stopTimer: () => ipcRenderer.send('stop-timer'),
 
+  //forget password
+  sendOtp: (email) => ipcRenderer.invoke('send-otp', email),
+  verifyOtp: (email, otp) => ipcRenderer.invoke('verify-otp', { email, otp }),
+  resetPassword: (email, otp, newPassword) => ipcRenderer.invoke('reset-password', { email, otp, newPassword })
 });

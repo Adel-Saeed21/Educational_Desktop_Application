@@ -51,3 +51,11 @@ function showSnackbar(message) {
     snackbar.classList.add('show');
     setTimeout(() => snackbar.classList.remove('show'), 3000);
 }
+// Add event listener for the "Forgot Password?" link
+const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+if (forgotPasswordLink) {
+    forgotPasswordLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = "forget_password.html";
+    });
+}

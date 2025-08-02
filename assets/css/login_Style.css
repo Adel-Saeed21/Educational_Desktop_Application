@@ -147,3 +147,142 @@ input::placeholder {
         opacity: 0;
     }
 }
+
+/* --- Forgot Password & OTP & Reset Password Styling --- */
+
+#loginFormContainer {
+    background: #0f1f2e;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    width: 400px;
+    margin: 40px auto;
+    animation: slideIn 0.8s ease-out;
+}
+
+form {
+    margin-top: 20px;
+}
+
+label.form-label {
+    color: #fff;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+    background-color: #000b19;
+    color: #fff;
+    border: 1px solid #7d8892;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 10px;
+    width: 100%;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus {
+    border-color: #7200ef;
+    outline: none;
+}
+
+button.btn {
+    margin-top: 15px;
+    background-color: #7200ef;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: bold;
+    width: 100%;
+    font-size: 1em;
+}
+
+button.btn-success {
+    background-color: #28a745;
+}
+
+button.btn-success:hover {
+    background-color: #218838;
+}
+
+button.btn-primary:hover {
+    background-color: #5d00c4;
+}
+
+.text-center {
+    text-align: center;
+    color: #fff;
+}
+
+#timer {
+    font-size: 1.2em;
+    color: #00ffcc;
+    font-family: 'Courier New', Courier, monospace;
+    margin-bottom: 10px;
+    display: block;
+    text-align: center;
+}
+
+#snackbar {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #e74c3c;
+    color: white;
+    text-align: center;
+    border-radius: 8px;
+    padding: 12px;
+    position: fixed;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    z-index: 9999;
+    font-size: 16px;
+}
+
+#snackbar.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+a#forgotPasswordLink {
+    color: #00ffcc;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 1em;
+    margin-top: 10px;
+    display: inline-block;
+    transition: color 0.2s;
+}
+
+a#forgotPasswordLink:hover {
+    color: #7200ef;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadein {
+    from { bottom: 0; opacity: 0; }
+    to { bottom: 30px; opacity: 1; }
+}
+
+@keyframes fadeout {
+    from { bottom: 30px; opacity: 1; }
+    to { bottom: 0; opacity: 0; }
+}
