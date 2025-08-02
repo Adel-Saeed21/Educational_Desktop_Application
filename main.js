@@ -3,6 +3,7 @@ const { app, BrowserWindow, ipcMain,desktopCapturer } = require("electron");
 const { glob } = require("fs");
 const os = require('os');
 const path = require("path");
+const examTimer = require("./service/examTimerService");
 
 const { dialog } = require('electron');
 const fs = require('fs');
@@ -15,7 +16,7 @@ let mainWindow;
 let currentUser = store.get("currentUser") || null;
 let currentPassword = store.get("currentPassword") || null;
 let studentToken = store.get("studentToken") || null;
-
+let preventClose = false;
 //in create window function i check if the user is logged in or not
 // if the user is logged in i load home.html otherwise i load login_screen.html
 // this is done by checking the studentToken in the userStore
@@ -25,7 +26,7 @@ function createWindow() {
     height: 800,
     width: 1200,
           icon: path.join(__dirname, 'build/icon.png'),
-
+    
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
         contextIsolation: true,
@@ -42,29 +43,20 @@ console.log("Store contents:", store.store);
 }
  
 
- mainWindow.on('close', async (e) => {
-  const { response } = await dialog.showMessageBox(mainWindow, {
-    type: 'question',
-    buttons: ['Cancel', 'Exit'],
-    defaultId: 1,
-    cancelId: 0,
-    title: 'Confirm Exit',
-    message: 'Are you sure you want to exit the exam?',
-    detail: 'Your answers will be automatically submitted.',
-  });
 
-  if (response === 0) {
-    e.preventDefault(); // Cancel
-  } else {
-    // Send signal to renderer to auto-submit
-    mainWindow.webContents.send('force-exit');
+mainWindow.on('close', (e) => {
+  if (preventClose) {
+    e.preventDefault();
+    mainWindow.webContents.send('try-exit');
   }
 });
 
 }
 
 
-
+ipcMain.on('set-prevent-close', (event, value) => {
+  preventClose = value;
+});
 //------------------------------------ Manage Screen Record 
 
 ipcMain.handle("save-recording", async (event, arrayBuffer) => {
@@ -105,7 +97,8 @@ ipcMain.handle("exam-timer", () => {
     clearInterval(global.timerInterval);
   }
 
-  global.timerValue = global.timer; 
+  global.timerValue = global.remainingTime || 0;
+
   global.timerInterval = setInterval(() => {
     if (global.timerValue <= 0) {
       clearInterval(global.timerInterval);
@@ -117,27 +110,41 @@ ipcMain.handle("exam-timer", () => {
     }
   }, 1000);
 
-  return { success: true, timerDuration: global.timer };
+  return { success: true, timerDuration: global.timerValue };
 });
+
 
 
 ipcMain.handle("start-exam", async (event, id) => {
   try {
     const response = await sendAuthorizedRequest("get", `https://quizroom-backend-production.up.railway.app/api/quiz/${id}/`);
-    global.quizData = response.data;
-    global.timer = response.data.duration * 60;
+    
+    const quiz = response.data;
+
+    const startTime = new Date(quiz.start_date).getTime(); // in ms
+    const endTime = new Date(quiz.end_date).getTime();     // in ms
+
+    const now = Date.now();
+    const remaining = Math.floor((endTime - now) / 1000); // in seconds
+
+    global.quizData = quiz;
+    global.remainingTime = remaining > 0 ? remaining : 0; // avoid negative values
 
     await mainWindow.loadFile("src/renderer/exam_screen.html");
+
     return { success: true };
   } catch (error) {
     return { success: false, message: "Failed to fetch questions" };
   }
 });
 
+
+
 // get  quiz data 
 ipcMain.handle("get-quiz-data", async () => {
   return global.quizData || null;
 });
+
 
 ipcMain.handle("exit-exam", async () => {
   if (global.timerInterval) {

@@ -22,17 +22,13 @@ contextBridge.exposeInMainWorld('api', {
   // Exam Flow
   startEXam: (id) => ipcRenderer.invoke('start-exam', id),
   getQuizData: () => ipcRenderer.invoke('get-quiz-data'),
-  getQuestions: () => ipcRenderer.invoke('get-questions'),
-  getAnswers: () => ipcRenderer.invoke('get-answers'),
-  getCurrentQuestionIndex: () => ipcRenderer.invoke('get-current-question-index'),
-  nextQuestion: () => ipcRenderer.invoke('next-question'),
-  previousQuestion: () => ipcRenderer.invoke('previous-question'),
+
   saveAnswer: (question, answer) => ipcRenderer.invoke('save-answer', question, answer),
   submitAnswer: (question, answer) => ipcRenderer.invoke('submit-answer', question, answer),
   submitAndExit: () => ipcRenderer.invoke('proceed-exit'),
   exitExam: () => ipcRenderer.invoke('exit-exam'),
   confirmExit: () => ipcRenderer.invoke('confirm-exit'),
-  onConfirmExit: (callback) => ipcRenderer.on('confirm-exit', callback),
+
 
   // Timer
   examTimer: () => ipcRenderer.invoke('exam-timer'),
@@ -42,10 +38,16 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.invoke('submit-answers');
     ipcRenderer.invoke('exit-exam');
   }),
-
+  getExamData: () => ipcRenderer.invoke("get-exam-data"),
   // Recording
   getSources: () => ipcRenderer.invoke('get-sources'),
   startRecording: (sourceId) => ipcRenderer.invoke('start-recording', sourceId),
   stopRecording: () => ipcRenderer.invoke('stop-recording'),
-  saveRecording: (buffer) => ipcRenderer.invoke('save-recording', buffer)
+  saveRecording: (buffer) => ipcRenderer.invoke('save-recording', buffer),
+  onForceExit: (callback) => ipcRenderer.on('force-exit', callback),
+   onTryExit: (callback) => ipcRenderer.on('try-exit', callback),
+  setPreventClose: (value) => ipcRenderer.send('set-prevent-close', value),
+  startTimer: (duration) => ipcRenderer.send('start-timer', duration),
+stopTimer: () => ipcRenderer.send('stop-timer'),
+
 });

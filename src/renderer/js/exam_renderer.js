@@ -14,7 +14,6 @@ let isRecording = false;
 let timer;
 window.api.getQuizData().then((response) => {
   console.log('-----------------------------\n', JSON.stringify(response, null, 2), '\n\n');
-  timer=response.duration;
   if (response && response.questions) {
     quizQuestions = response.questions;
     updateUI();
@@ -26,11 +25,30 @@ window.api.getQuizData().then((response) => {
 
 window.api.examTimer().then((res) => {
   if (res.success) {
-    console.log("✅ Timer started:", res.timerDuration);
-    updateTimerDisplay(res.timerDuration); 
+    let timeLeft = res.timerDuration;
+
+    updateTimerDisplay(timeLeft); // أول عرض للوقت
+
+    const countdown = setInterval(() => {
+      timeLeft--;
+
+      if (timeLeft <= 0) {
+        clearInterval(countdown);
+        window.api.timerFinished(); // أي شيء بيتم بعد انتهاء الوقت
+        submitExam(); // تسليم الامتحان تلقائيًا
+        return;
+      }
+
+      updateTimerDisplay(timeLeft);
+    }, 1000);
   }
 });
 
+
+window.api.onForceExit(async () => {
+  await submitExam();
+  window.close(); 
+});
 
 
 window.api.updateTimer((event, timeLeft) => {
@@ -50,6 +68,12 @@ window.api.updateTimer((event, timeLeft) => {
 });
 
 window.api.timerFinished();
+window.api.setPreventClose(true); 
+
+window.api.onTryExit(() => {
+  showToast(); 
+});
+
 
 function updateUI() {
   const question = quizQuestions[currentQuestionIndex];
@@ -80,7 +104,7 @@ function updateTimerDisplay(timeLeft) {
 
 function saveAnswer() {
   const question = quizQuestions[currentQuestionIndex];
-  answers[question.id] = answerInput.value.trim();
+  answers[question.id] = answerInput.value; 
 }
 
 function goToNextQuestion() {
@@ -102,20 +126,18 @@ function goToPreviousQuestion() {
 nextBtn.addEventListener('click', goToNextQuestion);
 previousBtn.addEventListener('click', goToPreviousQuestion);
 
-exit.addEventListener('click', confirmAndExit);
-
+exit.addEventListener('click', async () => {
+  const confirmExit = confirm('Are you sure you want to exit the exam? Your answers will be submitted.');
+  if (confirmExit) {
+    await submitExam(); // 1. Submit answers
+    window.api.exitExam(); // 2. Navigate back to Home screen
+  }
+});
 
 // Submit answers and stop recording
 submit.addEventListener('click', async () => {
   await submitExam();
 });
-
-
-window.onbeforeunload = (e) => {
-  e.preventDefault();
-  confirmAndExit(); 
-  return false;
-};
 
 
 
@@ -124,9 +146,10 @@ async function submitExam() {
   stopRecording();
 
   const answersArray = Object.entries(answers).map(([question_id, answer_text]) => ({
-    question_id: Number(question_id),
-    answer_text
-  }));
+  question_id: Number(question_id),
+  answer_text: (answer_text || "").trim()
+}));
+
 
   const quizId = window.quizId || (quizQuestions.length > 0 ? quizQuestions[0].quiz : null);
 
@@ -136,7 +159,6 @@ async function submitExam() {
   }
 
   const result = await window.api.submitQuiz(quizId, answersArray);
-
 
   if (result.success) {
     alert(result.detail);
@@ -226,10 +248,14 @@ function stopRecording() {
 /*stop recording*/
 
 
-async function confirmAndExit() {
-  const shouldExit = confirm("Are you sure you want to exit the exam?\nYour answers will be submitted automatically?");
-  if (shouldExit) {
-    await submitExam(); 
-    window.api.exitExam(); 
-  }
+function showToast() {
+  const toast = document.getElementById("toast");
+  toast.style.display = "block";
+  setTimeout(() => {
+    toast.style.display = "none";
+  }, 3000);
 }
+window.api.onTryExit(() => {
+  showToast();
+});
+

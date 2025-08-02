@@ -7,13 +7,9 @@
   <link rel="stylesheet" href="../../assets/css/exam_style.css">
 </head>
 <body>
-  <!--recording-->
-  <div id="recordingContainer">
-    <div id="recordingStatus" style="color: red; font-weight: bold;">
-      ● Recording in progress
-    </div>
-    <video id="screenPreview" width="180" height="100" autoplay muted style="border:2px solid #ff0000; background:#222; margin-top:6px;"></video>
-  </div>
+<div id="recordIndicator" title="Recording..."></div>
+
+
   <!--recording-->
   <div class="exam-timer">
     <h2>Exam Timer</h2>
@@ -28,6 +24,9 @@
   </div>
 </div>
 
+<!-- Toast HTML -->
+<div id="toast" style="display: none;">❌ This button is not used to exit the exam.<br>
+        Please use the exit button in the window to leave the exam properly</div>
 
 
 

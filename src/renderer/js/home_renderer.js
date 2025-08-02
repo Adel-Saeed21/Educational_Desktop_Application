@@ -24,40 +24,20 @@ resultBtn.addEventListener("click", (e) => {
   currentContent.classList.add("hidden");
 });
 
-// عناصر DOM الخاصة بالنتائج
+
 const showResultBtn = document.getElementById("resultBtn");
 const resultSection = document.getElementById("resultContent");
 const currentSection = document.getElementById("currentContent");
 const submissionTableContainer = document.getElementById("detailedResultsContainer");
 
-// إظهار/إخفاء الأقسام
 showResultBtn.addEventListener("click", () => {
   currentSection.classList.add("hidden");
   resultSection.classList.remove("hidden");
-  showStaticSubmissions(); // عرض النتائج المؤقتة
+  showStaticSubmissions(); 
 });
 
-const staticSubmissions = [
-  {
-    submission_id: 1,
-    quiz_id: 5,
-    quiz_title: "Math Quiz",
-    status: "graded",
-    grade: 95,
-    graded_at: "2025-07-20T15:00:00+03:00"
-  },
-  {
-    submission_id: 2,
-    quiz_id: 6,
-    quiz_title: "Physics Quiz",
-    status: "pending",
-    grade: null,
-    graded_at: null
-  }
-];
 
 
-// عرض النتائج المؤقتة
 function showStaticSubmissions() {
   window.api.getResult().then(staticSubmissions => {
     const results = staticSubmissions.results;
