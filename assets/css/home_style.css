@@ -456,3 +456,37 @@ tbody tr:hover {
 ::-webkit-scrollbar-thumb:hover {
   background-color: #5a00c6; /* لون عند الـ hover */
 }
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination-controls button {
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.pagination-controls button:hover {
+  background-color: #0056b3;
+}
+
+.view-details-btn {
+  background-color: #28a745;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.view-details-btn:hover {
+  background-color: #218838;
+}

@@ -37,14 +37,15 @@ showResultBtn.addEventListener("click", () => {
 });
 
 
+let currentPage = 1;
+const itemsPerPage = 10;
+let globalResults = null;
 
-function showStaticSubmissions() {
-  window.api.getResult().then(staticSubmissions => {
-    const results = staticSubmissions.results;
-    if (!Array.isArray(results)) {
-      console.error("Expected an array, got:", staticSubmissions);
-      return;
-    }
+function showStaticSubmissions(page = 1) {
+  const renderPage = (results) => {
+    currentPage = page;
+    const startIndex = (page - 1) * itemsPerPage;
+    const paginatedResults = results.slice(startIndex, startIndex + itemsPerPage);
 
     let html = `
       <table class="table table-bordered">
@@ -60,48 +61,89 @@ function showStaticSubmissions() {
         <tbody>
     `;
 
-
-    results.forEach((submission, index) => {
-  html += `
-    <tr>
-      <td>${index + 1}</td>
-      <td>${submission.quiz_title}</td>
-      <td>${submission.status}</td>
-      <td>${submission.grade !== null ? submission.grade : "—"}</td>
-      <td>
-        <button class="view-details-btn" 
-                data-index="${index}" 
-                data-status="${submission.status}">
-          View Details
-        </button>
-      </td>
-    </tr>
-  `;
-});
+    paginatedResults.forEach((submission, index) => {
+      html += `
+        <tr>
+          <td>${startIndex + index + 1}</td>
+          <td>${submission.quiz_title}</td>
+          <td>${submission.status}</td>
+          <td>${submission.grade !== null ? submission.grade : "—"}</td>
+          <td>
+            <button class="view-details-btn" 
+                    data-index="${startIndex + index}" 
+                    data-status="${submission.status}">
+              View Details
+            </button>
+          </td>
+        </tr>
+      `;
+    });
 
     html += `</tbody></table>`;
+
+    const totalPages = Math.ceil(results.length / itemsPerPage);
+    html += `<div class="pagination-controls" style="margin-top:10px;">`;
+
+    if (page > 1) {
+      html += `<button id="prevPage">Previous</button>`;
+    }
+
+    html += `<span style="margin: 0 10px;">Page ${page} of ${totalPages}</span>`;
+
+    if (page < totalPages) {
+      html += `<button id="nextPage">Next</button>`;
+    }
+
+    html += `</div>`;
+
     const submissionTableContainer = document.getElementById("submissionTableContainer");
     submissionTableContainer.innerHTML = html;
 
-   document.querySelectorAll(".view-details-btn").forEach(button => {
-  button.addEventListener("click", (e) => {
-    const index = e.target.getAttribute("data-index");
-    const status = e.target.getAttribute("data-status");
+    document.querySelectorAll(".view-details-btn").forEach(button => {
+      button.addEventListener("click", (e) => {
+        const index = e.target.getAttribute("data-index");
+        const status = e.target.getAttribute("data-status");
 
-    if (status.toLowerCase() === "graded") {
-      localStorage.setItem("selectedSubmissionIndex", index);
-      window.api.navigateToDetails();
-    } else {
-      alert("This quiz has not been graded yet.");
+        if (status.toLowerCase() === "graded") {
+          localStorage.setItem("selectedSubmissionIndex", index);
+          window.api.navigateToDetails();
+        } else {
+          alert("This quiz has not been graded yet.");
+        }
+      });
+    });
+
+    if (page > 1) {
+      document.getElementById("prevPage").addEventListener("click", () => {
+        renderPage(results, page - 1);
+        showStaticSubmissions(page - 1);
+      });
     }
-  });
-});
 
+    if (page < totalPages) {
+      document.getElementById("nextPage").addEventListener("click", () => {
+        renderPage(results, page + 1);
+        showStaticSubmissions(page + 1);
+      });
+    }
+  };
 
-  }).catch(err => {
-    console.error("Error loading results:", err.message);
-  });
+  if (globalResults) {
+    renderPage(globalResults);
+  } else {
+    window.api.getResult().then(staticSubmissions => {
+      if (!Array.isArray(staticSubmissions.results)) {
+        console.error("Expected an array, got:", staticSubmissions);
+        return;
+      }
+      globalResults = staticSubmissions.results;
+      renderPage(globalResults);
+    }).catch(err => {
+      console.error("Error loading results:", err.message);
+    });
+  }
 }
+
 
 
 
