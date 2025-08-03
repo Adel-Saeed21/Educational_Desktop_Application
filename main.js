@@ -228,6 +228,7 @@ ipcMain.handle("get-course-list", async () => {
   }
 });
 
+let previousQuizzes = null;
 
 //------------------------------------------------------------
 ipcMain.handle("get-current-quizes", async () => {
@@ -244,11 +245,37 @@ ipcMain.handle("get-current-quizes", async () => {
 });
 
 
+function startCurrentQuizzesStream(window) {
+  setInterval(async () => {
+    try {
+      const response = await sendAuthorizedRequest("get", "https://quizroom-backend-production.up.railway.app/api/student/quizzes/current/");
+      const current = response.data;
+
+    
+      if (JSON.stringify(current) !== JSON.stringify(previousQuizzes)) {
+        previousQuizzes = current;
+        window.webContents.send("current-quizzes-updated", current);
+      }
+    } catch (error) {
+      console.error("Error polling quizzes:", error.message);
+    }
+  }, 5000);
+}
+
+
+ipcMain.handle("start-quizzes-stream", (event) => {
+  const window = event.sender.getOwnerBrowserWindow();
+  startCurrentQuizzesStream(window);
+  return { success: true };
+});
+
 ipcMain.handle("navigate-to-details", async () => {
   if (mainWindow) {
     await mainWindow.loadFile("src/renderer/details_screen.html");
   }
 });
+
+
 
 
 //----------------------Fetch results
@@ -348,6 +375,11 @@ async function refreshAccessToken() {
   }
 }
 
+
+
+
+
+
 async function sendAuthorizedRequest(method, url, data = null) {
   try {
     const config = {
@@ -380,6 +412,13 @@ async function sendAuthorizedRequest(method, url, data = null) {
     throw error;
   }
 }
+
+
+
+
+
+
+
 //---------------------OTP---------------------
 
 ipcMain.handle('send-otp', async (event, email) => {

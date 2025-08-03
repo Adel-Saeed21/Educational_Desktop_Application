@@ -53,5 +53,15 @@ stopTimer: () => ipcRenderer.send('stop-timer'),
   //forget password
   sendOtp: (email) => ipcRenderer.invoke('send-otp', email),
   verifyOtp: (email, otp) => ipcRenderer.invoke('verify-otp', { email, otp }),
-  resetPassword: (email, otp, newPassword) => ipcRenderer.invoke('reset-password', { email, otp, newPassword })
+  resetPassword: (email, otp, newPassword) => ipcRenderer.invoke('reset-password', { email, otp, newPassword }),
+
+  //stream data
+    startQuizzesStream: () => ipcRenderer.invoke("start-quizzes-stream"),
+
+  onCurrentQuizzesUpdate: (callback) => {
+    ipcRenderer.on("current-quizzes-updated", (_event, data) => {
+      callback(data);
+    });
+  },
+
 });
