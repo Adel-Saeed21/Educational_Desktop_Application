@@ -11,6 +11,14 @@ const resultBtn = document.getElementById("resultBtn");
 
 const currentContent = document.getElementById("currentContent");
 const resultContent = document.getElementById("resultContent");
+document.getElementById("searchInput").addEventListener("input", () => {
+  filterAndRenderResults();
+});
+
+document.getElementById("statusFilter").addEventListener("change", () => {
+  filterAndRenderResults();
+});
+
 
 currentBtn.addEventListener("click", (e) => {
   e.preventDefault();
@@ -39,14 +47,14 @@ showResultBtn.addEventListener("click", () => {
 
 
 let currentPage = 1;
-const itemsPerPage = 10;
+const itemsPerPage = 7;
 let globalResults = null;
 
-function showStaticSubmissions(page = 1) {
-  const renderPage = (results) => {
+function showStaticSubmissions(page = 1, results = globalResults) {
+  const renderPage = (resultsToRender) => {
     currentPage = page;
     const startIndex = (page - 1) * itemsPerPage;
-    const paginatedResults = results.slice(startIndex, startIndex + itemsPerPage);
+    const paginatedResults = resultsToRender.slice(startIndex, startIndex + itemsPerPage);
 
     let html = `
       <table class="table table-bordered">
@@ -82,7 +90,7 @@ function showStaticSubmissions(page = 1) {
 
     html += `</tbody></table>`;
 
-    const totalPages = Math.ceil(results.length / itemsPerPage);
+    const totalPages = Math.ceil(resultsToRender.length / itemsPerPage);
     html += `<div class="pagination-controls" style="margin-top:10px;">`;
 
     if (page > 1) {
@@ -116,21 +124,19 @@ function showStaticSubmissions(page = 1) {
 
     if (page > 1) {
       document.getElementById("prevPage").addEventListener("click", () => {
-        renderPage(results, page - 1);
-        showStaticSubmissions(page - 1);
+        showStaticSubmissions(page - 1, resultsToRender);
       });
     }
 
     if (page < totalPages) {
       document.getElementById("nextPage").addEventListener("click", () => {
-        renderPage(results, page + 1);
-        showStaticSubmissions(page + 1);
+        showStaticSubmissions(page + 1, resultsToRender);
       });
     }
   };
 
-  if (globalResults) {
-    renderPage(globalResults);
+  if (results) {
+    renderPage(results);
   } else {
     window.api.getResult().then(staticSubmissions => {
       if (!Array.isArray(staticSubmissions.results)) {
@@ -138,7 +144,7 @@ function showStaticSubmissions(page = 1) {
         return;
       }
       globalResults = staticSubmissions.results;
-      renderPage(globalResults);
+      filterAndRenderResults(); 
     }).catch(err => {
       console.error("Error loading results:", err.message);
     });
@@ -150,7 +156,7 @@ function showStaticSubmissions(page = 1) {
 
 function renderCurrentQuizes(quizzes) {
   const container = document.getElementById('StartExam');
-  container.innerHTML = ''; // Clear container
+  container.innerHTML = ''; 
 
   quizzes.forEach((exam) => {
     const examCard = document.createElement('div');
@@ -228,7 +234,39 @@ function getCurrentQuizes() {
     renderCurrentQuizes(quizzes);
   });
 }
+function filterAndRenderResults() {
+  const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+  const selectedStatus = document.getElementById("statusFilter").value;
 
+  if (!Array.isArray(globalResults)) return;
+
+  const filtered = globalResults.filter(sub => {
+    const matchesTitle = sub.quiz_title.toLowerCase().includes(searchTerm);
+    const matchesStatus = selectedStatus ? sub.status.toLowerCase() === selectedStatus : true;
+    return matchesTitle && matchesStatus;
+  });
+
+  showStaticSubmissions(1, filtered); 
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+ // getCourseList();
+  getCurrentQuizes();
+  showStaticSubmissions();
+
+  const justLoggedIn = await window.api.checkJustLoggedIn();
+  if (justLoggedIn) {
+    showSnackbar("Login successfully");
+  }
+});
+
+
+function showSnackbar(message) {
+    const snackbar = document.getElementById('snackbar');
+    snackbar.textContent = message;
+    snackbar.classList.add('show');
+    setTimeout(() => snackbar.classList.remove('show'), 3000);
+}
 
 
 // function getCurrentQuizes() {
@@ -325,24 +363,7 @@ function getCurrentQuizes() {
 //     }
 //   });
 // }
-window.addEventListener('DOMContentLoaded', async () => {
- // getCourseList();
-  getCurrentQuizes();
-  showStaticSubmissions();
 
-  const justLoggedIn = await window.api.checkJustLoggedIn();
-  if (justLoggedIn) {
-    showSnackbar("Login successfully");
-  }
-});
-
-
-function showSnackbar(message) {
-    const snackbar = document.getElementById('snackbar');
-    snackbar.textContent = message;
-    snackbar.classList.add('show');
-    setTimeout(() => snackbar.classList.remove('show'), 3000);
-}
 
 
 

@@ -280,6 +280,7 @@ ipcMain.handle("navigate-to-details", async () => {
 
 //----------------------Fetch results
 ipcMain.handle('get-result-solutions', async (_, submissionIndex) => {
+  
   const submissions = global.submissions || [];
   const selectedSubmission = submissions[submissionIndex];
   return selectedSubmission?.answers || null;
