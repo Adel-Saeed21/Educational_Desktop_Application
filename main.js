@@ -25,22 +25,31 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     height: 800,
     width: 1200,
-          icon: path.join(__dirname, 'build/icon.png'),
-    
+    icon: path.join(__dirname, 'build/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-        contextIsolation: true,
-  nodeIntegration: false,
-  enableRemoteModule: false,
+      contextIsolation: true,
+      nodeIntegration: false,
+      enableRemoteModule: false,
     },
   });
+
   mainWindow.setMenuBarVisibility(false);
-if ( store.get("studentToken")) {
-console.log("Store contents:", store.store);
-  mainWindow.loadFile("src/renderer/home.html");
-} else {
-  mainWindow.loadFile("src/renderer/login_screen.html");
-}
+
+  // اول حاجه نحط شاشة تحميل
+  mainWindow.loadFile("src/renderer/loading.html");
+
+  // بعد شوية نحدد هيفتح ايه
+  setTimeout(() => {
+    if (store.get("refreshToken")) {
+      mainWindow.loadFile("src/renderer/home.html");
+    } else {
+      mainWindow.loadFile("src/renderer/login_screen.html");
+    }
+  }, 1500); 
+
+
+
  
 
 

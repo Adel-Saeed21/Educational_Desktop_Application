@@ -156,7 +156,12 @@ function showStaticSubmissions(page = 1, results = globalResults) {
 
 function renderCurrentQuizes(quizzes) {
   const container = document.getElementById('StartExam');
-  container.innerHTML = ''; 
+  container.innerHTML = '';
+
+  if (!quizzes || quizzes.length === 0) {
+    container.innerHTML = `<p style="color:red;">You don't have a quiz now</p>`;
+    return;
+  }
 
   quizzes.forEach((exam) => {
     const examCard = document.createElement('div');
@@ -170,7 +175,7 @@ function renderCurrentQuizes(quizzes) {
       <p><strong>Time:</strong> ${exam.duration} min</p>
       <p><strong>Total Points:</strong> ${exam.total_points}</p>
       <button class="StartExamButton" data-id="${exam.id}" ${isSubmitted ? 'disabled' : ''}>
-        ${isSubmitted ? 'Submitted' : 'Start Exam'}  
+        ${isSubmitted ? 'Submitted' : 'Start Exam'}
       </button>
     `;
 
@@ -179,6 +184,7 @@ function renderCurrentQuizes(quizzes) {
 
   attachStartExamHandlers();
 }
+
 
 function attachStartExamHandlers() {
   const allStartButtons = document.querySelectorAll('.StartExamButton');
