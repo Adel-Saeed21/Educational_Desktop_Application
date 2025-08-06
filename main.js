@@ -35,11 +35,8 @@ function createWindow() {
   });
 
   mainWindow.setMenuBarVisibility(false);
-
-  // اول حاجه نحط شاشة تحميل
   mainWindow.loadFile("src/renderer/loading.html");
-
-  // بعد شوية نحدد هيفتح ايه
+  
   setTimeout(() => {
     if (store.get("refreshToken")) {
       mainWindow.loadFile("src/renderer/home.html");
