@@ -275,6 +275,13 @@ function showSnackbar(message) {
 }
 
 
+window.api.startResultsStream();
+
+window.api.onResultsUpdate((results) => {
+  globalResults = results;
+  filterAndRenderResults();
+});
+
 // function getCurrentQuizes() {
 //   const container = document.getElementById('StartExam');
 //   const loader = document.getElementById('loader');
