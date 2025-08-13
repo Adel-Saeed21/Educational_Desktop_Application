@@ -55,24 +55,23 @@ callback(data);
  },
 //upload screen record - UPDATED VERSION
 uploadChunk: (chunkBuffer) => ipcRenderer.invoke("upload-chunk", chunkBuffer),
-resetUploadState: () => ipcRenderer.invoke("reset-upload-state"), // 🆕 NEW
-finishUpload: () => ipcRenderer.send("finish-upload"), // 🔄 CHANGED from invoke to send
+resetUploadState: () => ipcRenderer.invoke("reset-upload-state"), 
+finishUpload: () => ipcRenderer.send("finish-upload"), 
 onUploadProgress: (callback) => {
 ipcRenderer.on('upload-progress', (_event, progress) => {
 callback(progress);
  });
 },
-onUploadComplete: (callback) => { // 🆕 NEW
+onUploadComplete: (callback) => { 
 ipcRenderer.on('upload-complete', (_event) => {
 callback();
  });
 },
-// في preload.js - ضيف السطر ده مع باقي الـ functions:
 getUploadDebug: () => ipcRenderer.invoke("get-upload-debug"),
-removeUploadProgressListener: () => { // 🆕 NEW
+removeUploadProgressListener: () => { 
 ipcRenderer.removeAllListeners('upload-progress');
 },
-removeUploadCompleteListener: () => { // 🆕 NEW
+removeUploadCompleteListener: () => { 
 ipcRenderer.removeAllListeners('upload-complete');
 },
 startResultsStream: () => ipcRenderer.invoke('start-results-stream'),
