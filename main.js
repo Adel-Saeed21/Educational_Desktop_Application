@@ -445,7 +445,7 @@ ipcMain.handle('send-otp', async (event, email) => {
 
 ipcMain.handle('verify-otp', async (event, { email, otp }) => {
     try {
-        const response = await fetch('https://quizroom-backend-production.up.railway.app/api/auth/verify-otp', {
+        const response = await fetch('https://quizroom-backend-production.up.railway.app/api/auth/verify-otp/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, otp })
@@ -477,4 +477,29 @@ ipcMain.handle('reset-password', async (event, { email, otp, newPassword }) => {
     } catch (err) {
         return { success: false, message: 'Network error' };
     }
+});
+
+//---------------------Results Stream---------------------
+let previousResults = null;
+
+function startResultsStream(window) {
+  setInterval(async () => {
+    try {
+      const response = await sendAuthorizedRequest("get", "https://quizroom-backend-production.up.railway.app/api/student/submissions/");
+      const results = response.data;
+
+      if (JSON.stringify(results) !== JSON.stringify(previousResults)) {
+        previousResults = results;
+        window.webContents.send("results-updated", results);
+      }
+    } catch (error) {
+      console.error("Error polling results:", error.message);
+    }
+  }, 5000);
+}
+
+ipcMain.handle("start-results-stream", (event) => {
+  const window = event.sender.getOwnerBrowserWindow();
+  startResultsStream(window);
+  return { success: true };
 });

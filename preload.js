@@ -45,10 +45,10 @@ contextBridge.exposeInMainWorld('api', {
   stopRecording: () => ipcRenderer.invoke('stop-recording'),
   saveRecording: (buffer) => ipcRenderer.invoke('save-recording', buffer),
   onForceExit: (callback) => ipcRenderer.on('force-exit', callback),
-   onTryExit: (callback) => ipcRenderer.on('try-exit', callback),
+  onTryExit: (callback) => ipcRenderer.on('try-exit', callback),
   setPreventClose: (value) => ipcRenderer.send('set-prevent-close', value),
   startTimer: (duration) => ipcRenderer.send('start-timer', duration),
-stopTimer: () => ipcRenderer.send('stop-timer'),
+  stopTimer: () => ipcRenderer.send('stop-timer'),
 
   //forget password
   sendOtp: (email) => ipcRenderer.invoke('send-otp', email),
@@ -63,5 +63,10 @@ stopTimer: () => ipcRenderer.send('stop-timer'),
       callback(data);
     });
   },
-
+  startResultsStream: () => ipcRenderer.invoke('start-results-stream'),
+  onCurrentQuizzesUpdate: (callback) => {
+    ipcRenderer.on('results-updated', (_event, results) => {
+      callback(results);
+    });
+  },
 });
