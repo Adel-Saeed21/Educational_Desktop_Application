@@ -7,40 +7,42 @@
   <link rel="stylesheet" href="../../assets/css/exam_style.css">
 </head>
 <body>
-<div id="recordIndicator" title="Recording..."></div>
-
+  <div id="recordIndicator" title="Recording..."></div>
 
   <!--recording-->
   <div class="exam-timer">
     <h2>Exam Timer</h2>
     <div id="timer"></div>
   </div>
-    <div id="homeContainer">
-   <div id="questionContainer" class="question-box">
-  <div id="questionText" class="question-text"></div>
-  <div id="questionPoints" class="question-points">
-    <span class="icon">🎯</span>
-    <span></span>
-  </div>
-</div>
+  <div id="homeContainer">
+    <div id="questionContainer" class="question-box">
+      <div id="questionText" class="question-text"></div>
+      <div id="questionPoints" class="question-points">
+        <span class="icon">🎯</span>
+        <span></span>
+      </div>
+    </div>
 
-<!-- Toast HTML -->
-<div id="toast" style="display: none;"></div>
-
-
+    <!-- Toast HTML -->
+    <div id="toast" style="display: none;"></div>
 
     <textarea id="answer" placeholder="Type your answer here..."></textarea>
     <div class="button-container">
-     
-      <button id="Previous">Previous</button> 
-        
-<button id="Exit" style="display:none;">Exit</button>  
-<button id="Submit" style="display:none;">Submit</button>
-
-<button id="NextQuestion">NextQuestion</button>     
-      </div>
-
+      <button id="Previous">Previous</button>
+      <button id="Exit" style="display:none;">Exit</button>  
+      <button id="Submit" style="display:none;">Submit</button>
+      <button id="NextQuestion">NextQuestion</button>     
     </div>
+  </div>
+
+  <div id="uploadingOverlay">
+    <div>
+      <p>Screen record uploading...</p>
+      <progress id="uploadProgress"></progress>
+    </div>
+  </div>
+
   <script src="./js/exam_renderer.js"></script>
 </body>
+
 </html>
