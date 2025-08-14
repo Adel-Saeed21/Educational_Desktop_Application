@@ -14,3 +14,12 @@ document.getElementById("ranking").textContent = stats.ranking;
 document.getElementById("totalScore").textContent = stats.total_score;
 document.getElementById("rankingByTotalScore").textContent = stats.ranking_by_total_score;
 document.getElementById("totalStudents").textContent = stats.total_students;
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (homeBtn) {
+    homeBtn.addEventListener("click", () => {
+      window.location.href = "home.html";
+    });
+  }
+});
+

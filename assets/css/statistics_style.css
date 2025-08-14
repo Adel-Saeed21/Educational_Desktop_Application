@@ -47,3 +47,45 @@ html, body {
   font-weight: bold;
   color: #28a745;
 }
+
+header {
+  position: relative;
+  padding: 20px 40px;
+  background-color: #0f1f2e;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+}
+
+/* Title centered */
+header .title {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* Button in top-right corner */
+#homeBtn {
+  position: absolute;
+  top: 20px;
+  right: 40px;
+  background-color: transparent;
+  border: 2px solid white;
+  border-radius: 8px;
+  color: white;
+  font-size: 1em;
+  font-weight: 500;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#homeBtn:hover {
+  background-color: white;
+  color: #162938;
+  border-color: white;
+}
+
