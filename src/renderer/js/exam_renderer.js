@@ -939,20 +939,3 @@ function formatDuration(seconds) {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-function getSystemInfo() {
-  return {
-    timestamp: new Date().toISOString(),
-    userAgent: navigator.userAgent,
-    platform: navigator.platform,
-    language: navigator.language,
-    screenResolution: `${screen.width}x${screen.height}`,
-    colorDepth: screen.colorDepth,
-    pixelRatio: window.devicePixelRatio || 1,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    cookiesEnabled: navigator.cookieEnabled,
-    onlineStatus: navigator.onLine
-  };
-}
-
-// Log system information at startup
-console.log("🖥️ System Information:", getSystemInfo());
