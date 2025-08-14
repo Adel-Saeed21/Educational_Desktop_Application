@@ -65,8 +65,6 @@ header{
 .navigation a:hover::after{
     transform-origin: left;
     transform: scaleX(1);
-
-
 }
 .navigation #logoutBtn{
     width: 100px;
@@ -81,18 +79,12 @@ header{
     font-weight: 500;
     margin-left: 20px;
     transition: .5s;
-
-
 }
 
 .navigation #logoutBtn:hover{
     background-color: white;
     color: #162938;
-
-
 }
-
-
 
 main#mainContent {
   margin-top: 100px; 
@@ -109,8 +101,6 @@ main#mainContent {
     text-align: center;
     color: white;
 }
-
-
 
 #resultContent h2 {
     font-size: 2em;
@@ -130,7 +120,6 @@ main#mainContent {
     padding: 0 20px 50px;
 }
 
-
 #yourQuizes {
     margin-top: 20px;
     text-align: center;
@@ -143,6 +132,23 @@ main#mainContent {
 }
 
 #yourQuizes p {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+}
+
+/* Course section styling - same as quiz section */
+#yourCourses {
+    margin-top: 20px;
+    text-align: center;
+    color: white;
+}
+
+#yourCourses h2 {
+    font-size: 2em;
+    margin-bottom: 10px;
+}
+
+#yourCourses p {
     font-size: 1.2em;
     margin-bottom: 30px;
 }
@@ -203,62 +209,6 @@ tbody tr:hover {
   background-color: #218838;
 }
 
-
-/* #courseList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  justify-content: flex-start; 
-  padding: 12px;
-}
-
-.course-card {
-    background-color: #0f1f2e;
-    border-radius: 12px;
-    width: 260px;
-    padding: 20px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    color: white;
-    position: relative;
-    transition: transform 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: space-between;
-}
-
-.course-card:hover {
-    transform: translateY(-10px);
-}
-
-.course-card h2 {
-  margin: 0 0 8px 0;
-  font-size: 20px;
-  color: white;
-  text-align: left;
-}
-.course-card p {
-    margin: 4px 0;
-    text-align: left;    color: #7d8892;
-}
-
-.course-card button {
-  margin-top: 12px;
-  background-color: #7200ef;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  width: 100%; 
-  cursor: pointer;
-}
-
-.course-card button:hover {
-    background-color: #5a00c6;
-}
- */
-
-
 #homeDiv{
      margin-top: 100px;
   text-align: center;
@@ -275,7 +225,16 @@ tbody tr:hover {
   padding: 20px;
 }
 
-
+/* Course list styling - same as exam list */
+#courseList {
+  display: flex;
+  flex-wrap: wrap; 
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 40px;
+  gap: 20px;
+  padding: 20px;
+}
 
 .exam-card {
     width: 260px;
@@ -288,25 +247,35 @@ tbody tr:hover {
     transition: transform 0.3s ease;
 }
 
+/* Course card styling - same as exam card */
+.course-card {
+    width: 260px;
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #0f1f2e;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    color: white;
+    position: relative;
+    transition: transform 0.3s ease;
+}
 
-.exam-card h2 {
+.exam-card h2, .course-card h2 {
     margin-bottom: 15px;
     font-size: 18px;
     color: #fff;
     word-wrap: break-word;
 }
 
-.exam-card p {
+.exam-card p, .course-card p {
     margin: 8px 0;
     font-size: 14px;
     color: #7d8892;
 }
-.exam-card:hover {
+
+.exam-card:hover, .course-card:hover {
   transform: translateY(-10px);
   transition: transform 0.3s ease;
 }
-
-
 
 #StartExamButton {
   margin-top: 20px;
@@ -332,7 +301,7 @@ tbody tr:hover {
   height: 20px;
 }
 
-.exam-card button {
+.exam-card button, .course-card button {
     margin-top: 15px;
     background-color: #7200ef;
     color: white;
@@ -348,14 +317,12 @@ tbody tr:hover {
     justify-content: center;
     gap: 6px;
 }
-.exam-card button img {
+
+.exam-card button img, .course-card button img {
   width: 16px;
   height: 16px;
   object-fit: contain;
 }
-
-
-
 
 .loader {
   border: 6px solid #f3f3f3;
@@ -423,19 +390,15 @@ tbody tr:hover {
     accent-color: #ccc;
 }
 
-
 .examStatusCheckbox:checked {
     accent-color: #00cc66; 
 }
 
-
-.exam-card button:disabled {
+.exam-card button:disabled, .course-card button:disabled {
     background-color: #333;
     cursor: not-allowed;
     opacity: 0.6;
 }
-
-
 
 ::-webkit-scrollbar {
   width: 10px;
@@ -455,6 +418,7 @@ tbody tr:hover {
 ::-webkit-scrollbar-thumb:hover {
   background-color: #5a00c6; 
 }
+
 .pagination-controls {
   display: flex;
   justify-content: center;
@@ -489,6 +453,7 @@ tbody tr:hover {
 .view-details-btn:hover {
   background-color: #218838;
 }
+
 .search-filter-bar {
   display: flex;
   flex-wrap: wrap;

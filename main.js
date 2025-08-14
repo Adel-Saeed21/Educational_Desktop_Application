@@ -8,8 +8,8 @@ const fs = require('fs');
 const FormData = require('form-data');
 
 let sequenceCounter = 0;
-let activeUploads = new Set(); // Track active uploads
-let uploadErrors = [];         // Track upload errors
+let activeUploads = new Set(); 
+let uploadErrors = [];         
 
 let uploadSizeStats = {
   totalUploaded: 0,
@@ -30,9 +30,6 @@ let currentPassword = store.get("currentPassword") || null;
 let studentToken = store.get("studentToken") || null;
 
 let preventClose = false;
-//in create window function i check if the user is logged in or not
-// if the user is logged in i load home.html otherwise i load login_screen.html
-// this is done by checking the studentToken in the userStore
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -58,11 +55,6 @@ function createWindow() {
     }
   }, 1500); 
 
-
-
- 
-
-
 mainWindow.on('close', (e) => {
   if (preventClose) {
     e.preventDefault();
@@ -72,30 +64,18 @@ mainWindow.on('close', (e) => {
 
 }
 
-
 ipcMain.on('set-prevent-close', (event, value) => {
   preventClose = value;
 });
-//-------------------------------------------------------------------
 
 ipcMain.handle("upload-chunk", async (event, chunkData) => {
   const chunkSizeMB = (chunkData.length / (1024 * 1024)).toFixed(2);
-  console.log("📥 Received enhanced chunk:", chunkData.length, "bytes", `(${chunkSizeMB}MB)`);
   
   // Extract header and validate enhanced chunk
   let extractedData;
   try {
     extractedData = extractChunkHeader(chunkData);
-    console.log("📋 Extracted header:", {
-      chunkId: extractedData.header.chunkId,
-      sequence: extractedData.header.sequence,
-      originalSize: extractedData.header.originalSize,
-      mimeType: extractedData.header.mimeType,
-      currentQuestion: extractedData.header.currentQuestion,
-      studentId: extractedData.header.studentId
-    });
   } catch (error) {
-    console.error("❌ Header extraction failed:", error.message);
     return { 
       success: false, 
       message: `Invalid chunk format: ${error.message}`,
@@ -106,7 +86,6 @@ ipcMain.handle("upload-chunk", async (event, chunkData) => {
   const MAX_CHUNK_SIZE = 15 * 1024 * 1024; // 15MB for enhanced chunks
   
   if (chunkData.length > MAX_CHUNK_SIZE) {
-    console.error(`🚫 ENHANCED CHUNK TOO LARGE: ${chunkSizeMB}MB > 15MB`);
     return { 
       success: false, 
       message: `Enhanced chunk too large: ${chunkSizeMB}MB exceeds 15MB limit`,
@@ -121,14 +100,6 @@ ipcMain.handle("upload-chunk", async (event, chunkData) => {
   const studentIdCheck = global.student_id || extractedData.header.studentId;
   
   if (!quizId || !studentIdCheck || !studentToken) {
-    console.error("❌ Missing required data:", {
-      quiz_id: !!quizId,
-      student_id: !!studentIdCheck,
-      token: !!studentToken,
-      header_quiz_id: !!extractedData.header.examId,
-      header_student_id: !!extractedData.header.studentId
-    });
-    
     return { 
       success: false, 
       message: "Missing quiz ID, student ID, or authentication token",
@@ -138,14 +109,12 @@ ipcMain.handle("upload-chunk", async (event, chunkData) => {
 
   // Use sequence from header if available
   const currentSequence = extractedData.header.sequence || sequenceCounter++;
-  console.log(`📦 Processing enhanced chunk sequence: ${currentSequence} (${chunkSizeMB}MB)`);
 
   try {
     const result = await uploadEnhancedChunkWithRetry(extractedData, currentSequence);
     return result;
     
   } catch (error) {
-    console.error(`❌ Final enhanced upload failure for sequence ${currentSequence}:`, error.message);
     uploadErrors.push({ 
       sequence: currentSequence, 
       error: error.message, 
@@ -163,6 +132,7 @@ ipcMain.handle("upload-chunk", async (event, chunkData) => {
     };
   }
 });
+
 function extractChunkHeader(chunkData) {
   if (!chunkData || chunkData.length < 8) {
     throw new Error("Chunk too small to contain header");
@@ -191,8 +161,6 @@ function extractChunkHeader(chunkData) {
       throw new Error("Missing required header fields");
     }
     
-    console.log(`📋 Header extracted: ${headerSize} bytes header, ${videoData.length} bytes video`);
-    
     return {
       header: header,
       videoData: videoData,
@@ -205,9 +173,6 @@ function extractChunkHeader(chunkData) {
   }
 }
 
-
-
-
 async function uploadEnhancedChunkWithRetry(extractedData, sequenceNumber, maxRetries = 3) {
   const uploadId = `${extractedData.header.chunkId}-${Date.now()}`;
   activeUploads.add(uploadId);
@@ -219,20 +184,9 @@ async function uploadEnhancedChunkWithRetry(extractedData, sequenceNumber, maxRe
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const chunkSizeMB = (extractedData.totalSize / (1024 * 1024)).toFixed(2);
-      const videoSizeMB = (extractedData.videoData.length / (1024 * 1024)).toFixed(2);
-      
-      console.log(`🚀 Enhanced upload attempt ${attempt}/${maxRetries}:`);
-      console.log(`   Chunk ID: ${extractedData.header.chunkId}`);
-      console.log(`   Sequence: ${sequenceNumber}`);
-      console.log(`   Total Size: ${chunkSizeMB}MB`);
-      console.log(`   Video Size: ${videoSizeMB}MB`);
-      console.log(`   Header Size: ${extractedData.headerSize} bytes`);
-      
       const result = await performEnhancedUpload(extractedData, sequenceNumber);
       
       activeUploads.delete(uploadId);
-      console.log(`✅ Enhanced chunk ${extractedData.header.chunkId} uploaded successfully on attempt ${attempt}`);
       
       updateUploadProgress();
       
@@ -249,17 +203,14 @@ async function uploadEnhancedChunkWithRetry(extractedData, sequenceNumber, maxRe
       
     } catch (error) {
       lastError = error;
-      console.warn(`⚠️ Enhanced attempt ${attempt} failed for ${extractedData.header.chunkId}: ${error.message}`);
       
       // Don't retry on fatal errors
       if (error.isFatalError || error.isAuthError || error.isOversized) {
-        console.error(`🚫 Fatal error for enhanced chunk ${extractedData.header.chunkId}, not retrying`);
         break;
       }
       
       if (attempt < maxRetries) {
         const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-        console.log(`⏳ Waiting ${delay}ms before enhanced retry...`);
         await sleep(delay);
       }
     }
@@ -283,10 +234,6 @@ async function performEnhancedUpload(extractedData, sequenceNumber) {
   }
 
   const totalSizeMB = (extractedData.totalSize / (1024 * 1024)).toFixed(2);
-  const videoSizeMB = (videoBuffer.length / (1024 * 1024)).toFixed(2);
-  
-  console.log(`📤 Uploading enhanced chunk ${header.chunkId}:`);
-  console.log(`   Total: ${totalSizeMB}MB, Video: ${videoSizeMB}MB, Header: ${headerSize} bytes`);
 
   // Create FormData with enhanced metadata
   const formData = new FormData();
@@ -323,15 +270,7 @@ async function performEnhancedUpload(extractedData, sequenceNumber) {
   const quizId = global.quiz_id || header.examId;
   const studentId = global.student_id || header.studentId;
   
-  const uploadUrl = `https://quizroom-backend-production.up.railway.app/api/quiz/${quizId}/student/${studentId}/enhanced-chunk/`;
-  
-  console.log("📤 Enhanced upload details:");
-  console.log(`   URL: ${uploadUrl}`);
-  console.log(`   Chunk ID: ${header.chunkId}`);
-  console.log(`   Sequence: ${sequenceNumber}`);
-  console.log(`   Size: ${totalSizeMB}MB (${videoSizeMB}MB video + ${headerSize}B header)`);
-  console.log(`   Priority: ${header.priority}`);
-  console.log(`   Question: ${header.currentQuestion}/${header.totalQuestions}`);
+  const uploadUrl = `https://quizroom-backend-production.up.railway.app/api/quiz/${quizId}/student/${studentId}/chunk/`;
 
   try {
     const response = await axios.post(uploadUrl, formData, {
@@ -346,23 +285,10 @@ async function performEnhancedUpload(extractedData, sequenceNumber) {
       maxBodyLength: 20 * 1024 * 1024,
       validateStatus: function (status) {
         return status < 500;
-      },
-      onUploadProgress: (progressEvent) => {
-        if (progressEvent.lengthComputable) {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          console.log(`📊 Enhanced chunk ${header.chunkId} upload: ${percentCompleted}%`);
-        }
       }
     });
 
     if (response.status === 200 || response.status === 201) {
-      console.log(`✅ Enhanced chunk ${header.chunkId} (${totalSizeMB}MB) uploaded - Status: ${response.status}`);
-      
-      // Log server response for enhanced chunks
-      if (response.data) {
-        console.log(`📋 Server response:`, response.data);
-      }
-      
       return response.data;
       
     } else if (response.status === 413) {
@@ -370,11 +296,6 @@ async function performEnhancedUpload(extractedData, sequenceNumber) {
       error.isFatalError = true;
       error.isOversized = true;
       throw error;
-      
-    } else if (response.status === 404) {
-      // Try fallback to regular endpoint
-      console.warn("🔄 Enhanced endpoint not found, trying regular endpoint...");
-      return await performSingleUpload(videoData, sequenceNumber);
       
     } else if (response.status === 403) {
       const error = new Error(`Permission denied for enhanced chunk (403)`);
@@ -407,10 +328,6 @@ async function performEnhancedUpload(extractedData, sequenceNumber) {
       
       if (status === 403 || status === 401) {
         serverError.isAuthError = true;
-      } else if (status === 404) {
-        // For 404, try regular upload as fallback
-        console.warn("🔄 Enhanced endpoint not available, falling back to regular upload...");
-        return await performSingleUpload(extractedData.videoData, sequenceNumber);
       } else if (status === 413) {
         serverError.isFatalError = true;
         serverError.isOversized = true;
@@ -449,34 +366,7 @@ function updateEnhancedSizeStats(extractedData) {
   enhancedUploadStats.avgHeaderSize = enhancedUploadStats.totalHeaderSize / enhancedUploadStats.enhancedChunks;
   enhancedUploadStats.headerOverhead = (enhancedUploadStats.totalHeaderSize / enhancedUploadStats.totalUploaded) * 100;
   enhancedUploadStats.headerEfficiency = ((videoData.length / totalSize) * 100);
-  
-  const stats = {
-    total: (enhancedUploadStats.totalUploaded / (1024 * 1024)).toFixed(2),
-    avg: (enhancedUploadStats.avgChunkSize / (1024 * 1024)).toFixed(2),
-    largest: (enhancedUploadStats.largestChunk / (1024 * 1024)).toFixed(2),
-    smallest: enhancedUploadStats.smallestChunk === Infinity ? 0 : (enhancedUploadStats.smallestChunk / (1024 * 1024)).toFixed(2),
-    count: enhancedUploadStats.totalChunks,
-    enhanced: enhancedUploadStats.enhancedChunks,
-    regular: enhancedUploadStats.regularChunks,
-    avgHeaderKB: (enhancedUploadStats.avgHeaderSize / 1024).toFixed(2),
-    headerOverhead: enhancedUploadStats.headerOverhead.toFixed(2),
-    efficiency: enhancedUploadStats.headerEfficiency.toFixed(1)
-  };
-  
-  console.log(`📊 Enhanced Upload Stats:`);
-  console.log(`   Total: ${stats.total}MB, Avg: ${stats.avg}MB, Range: ${stats.smallest}-${stats.largest}MB`);
-  console.log(`   Count: ${stats.count} (${stats.enhanced} enhanced, ${stats.regular} regular)`);
-  console.log(`   Header: ${stats.avgHeaderKB}KB avg, ${stats.headerOverhead}% overhead, ${stats.efficiency}% efficiency`);
-  
-  if (enhancedUploadStats.avgChunkSize > 8 * 1024 * 1024) {
-    console.warn(`⚠️ High average enhanced chunk size: ${stats.avg}MB`);
-  }
-  
-  if (enhancedUploadStats.headerOverhead > 5) {
-    console.warn(`⚠️ High header overhead: ${stats.headerOverhead}%`);
-  }
 }
-
 
 async function performSingleUpload(chunkData, sequenceNumber) {
   // Convert to Buffer
@@ -490,7 +380,6 @@ async function performSingleUpload(chunkData, sequenceNumber) {
   }
 
   const chunkSizeMB = (chunkBuffer.length / (1024 * 1024)).toFixed(2);
-  console.log(`📤 Uploading sequence ${sequenceNumber}: ${chunkSizeMB}MB`);
 
   // Create FormData with size info
   const formData = new FormData();
@@ -505,11 +394,6 @@ async function performSingleUpload(chunkData, sequenceNumber) {
   });
 
   const uploadUrl = `https://quizroom-backend-production.up.railway.app/api/quiz/${global.quiz_id}/student/${global.student_id}/chunk/`;
-  
-  console.log("📤 Upload details:");
-  console.log(`   URL: ${uploadUrl}`);
-  console.log(`   Sequence: ${sequenceNumber}`);
-  console.log(`   Size: ${chunkSizeMB}MB`);
 
   try {
     const response = await axios.post(uploadUrl, formData, {
@@ -518,22 +402,14 @@ async function performSingleUpload(chunkData, sequenceNumber) {
         'Authorization': `Bearer ${studentToken}`
       },
       timeout: 60000, 
-      maxContentLength: 10 * 1024 * 1024, // 1
+      maxContentLength: 10 * 1024 * 1024,
       maxBodyLength: 10 * 1024 * 1024,
       validateStatus: function (status) {
         return status < 500;
-      },
-      // إضافة progress tracking
-      onUploadProgress: (progressEvent) => {
-        if (progressEvent.lengthComputable) {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          console.log(`📊 Chunk ${sequenceNumber} upload: ${percentCompleted}%`);
-        }
       }
     });
 
     if (response.status === 200 || response.status === 201) {
-      console.log(`✅ Sequence ${sequenceNumber} (${chunkSizeMB}MB) uploaded - Status: ${response.status}`);
       return response.data;
       
     } else if (response.status === 413) {
@@ -592,27 +468,12 @@ async function performSingleUpload(chunkData, sequenceNumber) {
   }
 }
 
-
 function updateSizeStats(chunkSize) {
   uploadSizeStats.totalUploaded += chunkSize;
   uploadSizeStats.totalChunks++;
   uploadSizeStats.largestChunk = Math.max(uploadSizeStats.largestChunk, chunkSize);
   uploadSizeStats.smallestChunk = Math.min(uploadSizeStats.smallestChunk, chunkSize);
   uploadSizeStats.avgChunkSize = uploadSizeStats.totalUploaded / uploadSizeStats.totalChunks;
-  
-  const stats = {
-    total: (uploadSizeStats.totalUploaded / (1024 * 1024)).toFixed(2),
-    avg: (uploadSizeStats.avgChunkSize / (1024 * 1024)).toFixed(2),
-    largest: (uploadSizeStats.largestChunk / (1024 * 1024)).toFixed(2),
-    smallest: uploadSizeStats.smallestChunk === Infinity ? 0 : (uploadSizeStats.smallestChunk / (1024 * 1024)).toFixed(2),
-    count: uploadSizeStats.totalChunks
-  };
-  
-  console.log(`📊 Upload Stats - Total: ${stats.total}MB, Avg: ${stats.avg}MB, Range: ${stats.smallest}-${stats.largest}MB, Count: ${stats.count}`);
-  
-  if (uploadSizeStats.avgChunkSize > 6 * 1024 * 1024) { 
-    console.warn(`⚠️ High average chunk size: ${stats.avg}MB`);
-  }
 }
 
 function updateUploadProgress() {
@@ -622,27 +483,20 @@ function updateUploadProgress() {
     active: activeUploads.size,
     errors: uploadErrors.length,
     percentage: sequenceCounter > 0 ? Math.round(((sequenceCounter - activeUploads.size) / sequenceCounter) * 100) : 0,
-    // إضافة معلومات الحجم
     totalSizeMB: (uploadSizeStats.totalUploaded / (1024 * 1024)).toFixed(2),
     avgChunkSizeMB: uploadSizeStats.totalChunks > 0 ? (uploadSizeStats.avgChunkSize / (1024 * 1024)).toFixed(2) : 0
   };
   
-  console.log(`📊 Progress: ${progress.uploaded}/${progress.total} (${progress.percentage}%) - Total: ${progress.totalSizeMB}MB, Avg: ${progress.avgChunkSizeMB}MB/chunk`);
   mainWindow.webContents.send('upload-progress', progress);
 }
 
-
-// // Handle recording finish
+// Handle recording finish
 ipcMain.on("finish-upload", () => {
-  console.log("📝 Recording finished");
-  
   // Check if all uploads are complete
   const checkCompletion = () => {
     if (activeUploads.size === 0) {
-      console.log("🎯 All chunks uploaded!");
       mainWindow.webContents.send('upload-complete');
     } else {
-      console.log(`⏳ Waiting for ${activeUploads.size} active uploads...`);
       setTimeout(checkCompletion, 1000);
     }
   };
@@ -653,6 +507,7 @@ ipcMain.on("finish-upload", () => {
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
 // Reset upload state (call this when starting new recording)
 ipcMain.handle("reset-upload-state", () => {
   sequenceCounter = 0;
@@ -674,10 +529,8 @@ ipcMain.handle("reset-upload-state", () => {
     headerEfficiency: 0
   };
   
-  console.log("🔄 Enhanced upload state and stats reset");
   return { success: true };
 });
-
 
 ipcMain.handle("get-upload-debug", () => {
   return {
@@ -688,17 +541,16 @@ ipcMain.handle("get-upload-debug", () => {
     hasStudentId: !!global.student_id,
     hasToken: !!studentToken,
     sizeStats: enhancedUploadStats,
-    maxChunkSize: 15 * 1024 * 1024, // Updated for enhanced chunks
+    maxChunkSize: 15 * 1024 * 1024,
     currentBitrate: 256000,
     enhancedFeatures: {
       headerProcessing: true,
       metadataExtraction: true,
       fallbackSupport: true,
-      enhancedEndpoint: true
+      enhancedEndpoint: false
     }
   };
 });
-
 
 ipcMain.handle("get-upload-stats", () => {
   return {
@@ -714,6 +566,7 @@ ipcMain.handle("get-upload-stats", () => {
     headerEfficiencyPercent: enhancedUploadStats.headerEfficiency.toFixed(1)
   };
 });
+
 ipcMain.handle("get-chunk-stats", () => {
   return {
     totalChunks: enhancedUploadStats.totalChunks,
@@ -728,7 +581,6 @@ ipcMain.handle("get-chunk-stats", () => {
   };
 });
 
-
 //------------------------------------ Manage Screen Record 
 
 ipcMain.handle("save-recording", async (event, arrayBuffer) => {
@@ -738,7 +590,6 @@ ipcMain.handle("save-recording", async (event, arrayBuffer) => {
 
   const filePath = path.join(recordingsPath, `recording-${Date.now()}.webm`);
   fs.writeFileSync(filePath, buffer);
-  console.log("✅ Video saved to:", filePath);
 });
 
 ipcMain.handle('get-sources', async () => {
@@ -785,7 +636,26 @@ ipcMain.handle("exam-timer", () => {
   return { success: true, timerDuration: global.timerValue };
 });
 
+ipcMain.handle("show-course-statistics",async(event,id)=>{
+try{
+    const response = await sendAuthorizedRequest("get", `https://quizroom-backend-production.up.railway.app/api/student/statistics/performance-summary/${id}/`);
 
+    const statistic=response.data;
+    global.statisticData=statistic;
+
+    await mainWindow.loadFile("src/renderer/statistics_screen.html");
+
+
+    return { success: true };
+
+}catch (error) {
+    return { success: false, message: "Failed to fetch Course statistics" };
+
+}
+});
+ipcMain.handle("get-course-statistics", async () => {
+  return global.statisticData || null;
+});
 
 ipcMain.handle("start-exam", async (event, id) => {
   try {
@@ -810,14 +680,10 @@ ipcMain.handle("start-exam", async (event, id) => {
   }
 });
 
-
-
 // get  quiz data 
 ipcMain.handle("get-quiz-data", async () => {
   return global.quizData || null;
 });
-
-
 
 let isExiting = false;
 
@@ -837,9 +703,6 @@ ipcMain.handle("exit-exam", async () => {
   isExiting = false; 
 });
 
-
-
-
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------
 let justLoggedIn = false; // do it to check if user visit home screen first once or not 
 // for Login  i use axios to connect with the backend and electron store to save the token
@@ -853,9 +716,6 @@ ipcMain.handle("login", async (event, email, password) => {
       "https://quizroom-backend-production.up.railway.app/api/auth/student-login/",
       { email, password }
     );
-
-   // console.log(JSON.stringify(response.data, null, 2));
-
 
    studentToken = response.data.access;
  refreshToken = response.data.refresh;
@@ -872,24 +732,22 @@ store.set('refreshToken', refreshToken);
 store.set('currentUser', response.data.user.name);
 store.set('currentPassword', password);
 
-
     mainWindow.loadFile("src/renderer/home.html");
 
     return { success: true, user: response.data.user };
   } catch (error) {
-    console.error("Login failed:", error.message);
     return {
       success: false,
       message: "Login failed. Please check your credentials.",
     };
   }
 });
+
 ipcMain.handle("checkJustLoggedIn", () => {
   const wasJustLoggedIn = justLoggedIn;
   justLoggedIn = false;  
   return wasJustLoggedIn;
 });
-
 
 // -------------------- Fetch Course List --------------------
 
@@ -898,7 +756,6 @@ ipcMain.handle("get-course-list", async () => {
     const response = await sendAuthorizedRequest("get", "https://quizroom-backend-production.up.railway.app/api/student/courses/");
     return { success: true, courses: response.data };
   } catch (error) {
-    console.error("Failed to fetch course list:", error.message);
     return {
       success: false,
       message: "Failed to fetch course list.",
@@ -915,7 +772,6 @@ ipcMain.handle("get-current-quizes", async () => {
     
     return { success: true, quizes: response.data };
   } catch (error) {
-    console.error("Failed to fetch Current Quizes:", error.message);
     return {
       success: false,
       message: "Failed to fetch Current Quizes.",
@@ -923,24 +779,21 @@ ipcMain.handle("get-current-quizes", async () => {
   }
 });
 
-
 function startCurrentQuizzesStream(window) {
   setInterval(async () => {
     try {
       const response = await sendAuthorizedRequest("get", "https://quizroom-backend-production.up.railway.app/api/student/quizzes/current/");
       const current = response.data;
-
     
       if (JSON.stringify(current) !== JSON.stringify(previousQuizzes)) {
         previousQuizzes = current;
         window.webContents.send("current-quizzes-updated", current);
       }
     } catch (error) {
-      console.error("Error polling quizzes:", error.message);
+      // Error polling quizzes
     }
   }, 5000);
 }
-
 
 ipcMain.handle("start-quizzes-stream", (event) => {
   const window = event.sender.getOwnerBrowserWindow();
@@ -954,12 +807,8 @@ ipcMain.handle("navigate-to-details", async () => {
   }
 });
 
-
-
-
 //----------------------Fetch results
 ipcMain.handle('get-result-solutions', async (_, submissionIndex) => {
-  
   const submissions = global.submissions || [];
   const selectedSubmission = submissions[submissionIndex];
   return selectedSubmission?.answers || null;
@@ -972,7 +821,6 @@ ipcMain.handle("get-result", async () => {
     global.submissions = submissions; 
     return { success: true, results: submissions };
   } catch (error) {
-    console.error("Failed to fetch results:", error.message);
     return {
       success: false,
       message: "Failed to fetch all Results.",
@@ -988,8 +836,8 @@ ipcMain.on("logout", () => {
   studentToken = null;
   refreshToken=null;
   store.delete('studentToken');
-store.delete('currentUser');
-store.delete('currentPassword');
+  store.delete('currentUser');
+  store.delete('currentPassword');
 
   mainWindow.loadFile("src/renderer/login_screen.html");
 });
@@ -1008,8 +856,6 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
-
-
 //------------------submit-------------------------------
 
 ipcMain.handle("submit-quiz", async (event, quizId, answers) => {
@@ -1021,14 +867,12 @@ ipcMain.handle("submit-quiz", async (event, quizId, answers) => {
     );
     return { success: true, detail: response.data.detail };
   } catch (error) {
-    console.error("Quiz submission failed:", error.message);
     return {
       success: false,
       message: error.response?.data?.detail || "Quiz submission failed.",
     };
   }
 });
-
 
 //-------------------------------------GET ACCESS TOKEN-------------------------------
 async function refreshAccessToken() {
@@ -1043,21 +887,14 @@ async function refreshAccessToken() {
     const newAccessToken = response.data.access;
     store.set('studentToken', newAccessToken);
     studentToken = newAccessToken;
-    console.log("Token refreshed successfully");
     return newAccessToken;
   } catch (error) {
-    console.error("Failed to refresh token:", error.message);
     // logout or prompt login again
     store.delete('refreshToken');
     store.delete('studentToken');
     return null;
   }
 }
-
-
-
-
-
 
 async function sendAuthorizedRequest(method, url, data = null) {
   try {
@@ -1091,12 +928,6 @@ async function sendAuthorizedRequest(method, url, data = null) {
     throw error;
   }
 }
-
-
-
-
-
-
 
 //---------------------OTP---------------------
 
@@ -1151,9 +982,6 @@ ipcMain.handle('reset-password', async (event, { email, otp, newPassword }) => {
     }
 });
 
-
-
-
 //---------------------Results Stream---------------------
 let previousResults = null;
 
@@ -1168,7 +996,7 @@ function startResultsStream(window) {
         window.webContents.send("results-updated", results);
       }
     } catch (error) {
-      console.error("Error polling results:", error.message);
+      // Error polling results
     }
   }, 5000);
 }

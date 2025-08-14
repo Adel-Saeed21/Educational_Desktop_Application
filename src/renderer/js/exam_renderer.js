@@ -1,4 +1,3 @@
-
 const submit = document.getElementById('Submit');
 const exit = document.getElementById('Exit');
 const nextBtn = document.getElementById('NextQuestion');
@@ -54,8 +53,6 @@ let chunkSizeAlerts = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log("🚀 Exam page loaded, starting recording...");
-  
   setTimeout(() => {
     startRecording();
   }, 500);
@@ -136,8 +133,6 @@ window.api.updateTimer((event, timeLeft) => {
 
 // Upload Progress Listener
 window.api.onUploadProgress((progress) => {
-  console.log(`📊 Upload Progress: ${progress.uploaded}/${progress.total} (${progress.percentage}%)`);
-  
   if (uploadProgress && uploadingOverlay.style.display === 'block') {
     uploadProgress.value = progress.percentage;
     
@@ -149,19 +144,16 @@ window.api.onUploadProgress((progress) => {
 });
 
 window.api.onUploadComplete(() => {
-  console.log("🎯 All chunks uploaded successfully!");
   uploadInProgress = false;
   pendingChunks = 0;
   hideUploadingOverlay();
 });
 
 window.addEventListener('online', () => {
-  console.log('📶 Network connection restored');
   showToast('✅ Network connection restored');
 });
 
 window.addEventListener('offline', () => {
-  console.log('📵 Network connection lost');
   showToast('❌ Network connection lost - uploads may fail');
 });
 
@@ -221,14 +213,12 @@ function showUploadingOverlay() {
     if (uploadProgress) {
       uploadProgress.value = 0;
     }
-    console.log("📱 Upload overlay shown");
   }
 }
 
 function hideUploadingOverlay() {
   if (uploadingOverlay) {
     uploadingOverlay.style.display = 'none';
-    console.log("📱 Upload overlay hidden");
   }
 }
 
@@ -272,20 +262,16 @@ function calculateOptimalInterval() {
   const secondsFor3MB = (MAX_CHUNK_SIZE * 8) / actualBitrate; 
   const optimalInterval = Math.min(secondsFor3MB, 15) * 1000; 
   
-  console.log(`📊 Optimal interval: ${optimalInterval/1000}s for max 10MB chunks`);
   return Math.max(optimalInterval, 5000); 
 }
 
 async function startRecording() {
   try {
-    console.log("🎥 Starting screen recording...");
-    
     // Reset upload state before starting
     await window.api.resetUploadState();
     
     const sources = await window.api.getSources();
     const source = sources[0];
-    console.log("🎯 Selected source:", source.id);
 
     recordingStream = await navigator.mediaDevices.getUserMedia({
       audio: false,
@@ -317,12 +303,9 @@ async function startRecording() {
     setupMediaRecorderEventHandlers();
 
     const optimalInterval = calculateOptimalInterval();
-    console.log(`🎯 Starting recording with ${optimalInterval/1000}s intervals for <10MB chunks`);
     
     mediaRecorder.start(optimalInterval);
     isRecording = true;
-    
-    console.log("✅ Recording started successfully");
     
     // Show recording status
     const recordingStatus = document.getElementById('recordingStatus');
@@ -333,7 +316,6 @@ async function startRecording() {
     }
 
   } catch (err) {
-    console.error("❌ Recording start failed:", err);
     showToast("❌ Screen recording permission denied. You cannot start the exam.");
     await new Promise(resolve => setTimeout(resolve, 2500));
     window.api.exitExam();
@@ -349,8 +331,6 @@ function setupMediaRecorderEventHandlers() {
       // Analyze chunk before processing
       const analysis = analyzeChunkSize(event.data.size, timeTaken);
       
-      console.log(`📦 Raw chunk ${analysis.rating.toUpperCase()}: ${analysis.sizeMB}MB in ${analysis.timeTaken.toFixed(1)}s`);
-      
       // Update performance stats for generation
       updatePerformanceStats('generated', event.data.size);
       
@@ -359,11 +339,9 @@ function setupMediaRecorderEventHandlers() {
       
       // Process with Enhanced Headers
       if (analysis.isOversized) {
-        console.warn(`🔪 Splitting oversized chunk: ${analysis.sizeMB}MB`);
         await splitAndUploadLargeChunk(event.data);
       } else {
         // Normal processing with header enhancement
-        console.log(`📤 Processing chunk with enhanced header: ${analysis.sizeMB}MB`);
         await uploadChunkAsync(event.data);
       }
       
@@ -374,14 +352,6 @@ function setupMediaRecorderEventHandlers() {
       if (window.api.getChunkStats) {
         try {
           const stats = await window.api.getChunkStats();
-          if (stats && stats.totalChunks % 5 === 0) {
-            console.log(`📈 Enhanced Chunk Progress:`, {
-              total: stats.totalChunks,
-              withHeaders: stats.enhancedChunks || stats.totalChunks,
-              avgEnhancedSize: stats.avgEnhancedSize || 'calculating...',
-              headerEfficiency: stats.headerOverhead || 'calculating...'
-            });
-          }
         } catch (error) {
           // Stats not available - continue silently
         }
@@ -391,8 +361,6 @@ function setupMediaRecorderEventHandlers() {
 
   // Stop Handler
   mediaRecorder.onstop = async () => {
-    console.log("🛑 Recording stopped, finalizing...");
-    
     // Stop all tracks to free up resources
     if (recordingStream) {
       recordingStream.getTracks().forEach(track => track.stop());
@@ -404,17 +372,14 @@ function setupMediaRecorderEventHandlers() {
       const blob = new Blob(recordingChunks, { type: 'video/webm' });
       const arrayBuffer = await blob.arrayBuffer();
       await window.api.saveRecording(arrayBuffer);
-      console.log("💾 Local recording saved");
     }
     
     // Signal that recording is finished
     window.api.finishUpload();
-    console.log("📡 Upload finish signal sent");
   };
 
   // Error Handler
   mediaRecorder.onerror = (event) => {
-    console.error("❌ MediaRecorder error:", event.error);
     showToast("Recording error occurred. Please restart the exam.");
   };
 }
@@ -422,7 +387,6 @@ function setupMediaRecorderEventHandlers() {
 function stopRecording() {
   if (!isRecording) return;
   
-  console.log("🛑 Stopping recording...");
   isRecording = false;
   
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
@@ -519,15 +483,6 @@ async function createChunkWithHeader(videoChunk) {
     type: 'application/octet-stream' 
   });
   
-  console.log(`📦 Enhanced chunk created:`, {
-    chunkId,
-    sequence: sequenceCounter,
-    headerSize: headerBuffer.length,
-    videoSize: videoBuffer.byteLength,
-    totalSize: enhancedBlob.size,
-    compression: ((videoChunk.size / enhancedBlob.size) * 100).toFixed(1) + '%'
-  });
-  
   return enhancedBlob;
 }
 
@@ -539,10 +494,7 @@ async function uploadChunkAsync(chunk) {
     // Create Chunk with Header and Metadata
     const chunkWithHeader = await createChunkWithHeader(chunk);
     
-    console.log(`📤 Uploading chunk ${chunkSizeMB}MB with header (${pendingChunks} pending)...`);
-    
     if (chunkWithHeader.size > MAX_CHUNK_SIZE) {
-      console.error(`🚨 CHUNK TOO LARGE: ${(chunkWithHeader.size / (1024 * 1024)).toFixed(2)}MB > 15MB limit`);
       showToast(`🚨 Chunk too large: ${(chunkWithHeader.size / (1024 * 1024)).toFixed(2)}MB`);
     }
     
@@ -553,10 +505,8 @@ async function uploadChunkAsync(chunk) {
     pendingChunks = Math.max(0, pendingChunks - 1);
     
     if (result.success) {
-      console.log(`✅ Enhanced chunk uploaded successfully (${pendingChunks} remaining)`);
       updatePerformanceStats('uploaded', chunkWithHeader.size, true);
     } else {
-      console.error("❌ Enhanced chunk upload failed:", result.message);
       updatePerformanceStats('uploaded', chunkWithHeader.size, false);
       
       if (result.finalAttempt) {
@@ -565,7 +515,6 @@ async function uploadChunkAsync(chunk) {
     }
   } catch (error) {
     pendingChunks = Math.max(0, pendingChunks - 1);
-    console.error("❌ Enhanced chunk upload error:", error);
     showToast("⚠️ Network error during upload");
     updatePerformanceStats('uploaded', 0, false);
   }
@@ -573,12 +522,9 @@ async function uploadChunkAsync(chunk) {
 
 async function splitAndUploadLargeChunk(largeBlob) {
   const originalSizeMB = (largeBlob.size / 1024 / 1024).toFixed(2);
-  console.log(`🔪 Splitting large chunk: ${originalSizeMB}MB`);
   
   const SAFE_CHUNK_SIZE = 2 * 1024 * 1024; 
   const totalParts = Math.ceil(largeBlob.size / SAFE_CHUNK_SIZE);
-  
-  console.log(`📊 Will create ${totalParts} parts from ${originalSizeMB}MB chunk`);
   
   for (let i = 0; i < totalParts; i++) {
     const start = i * SAFE_CHUNK_SIZE;
@@ -586,7 +532,6 @@ async function splitAndUploadLargeChunk(largeBlob) {
     const chunkPart = largeBlob.slice(start, end);
     
     const partSizeMB = (chunkPart.size / 1024 / 1024).toFixed(2);
-    console.log(`📦 Processing split part ${i + 1}/${totalParts}: ${partSizeMB}MB`);
     
     // Each split part gets its own header
     recordingChunks.push(chunkPart);
@@ -597,8 +542,6 @@ async function splitAndUploadLargeChunk(largeBlob) {
       await new Promise(resolve => setTimeout(resolve, 300));
     }
   }
-  
-  console.log(`✅ Successfully split and uploaded ${originalSizeMB}MB into ${totalParts} enhanced chunks`);
 }
 
 // ===== UTILITY FUNCTIONS =====
@@ -617,7 +560,6 @@ async function calculateChecksum(chunk) {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
   } catch (error) {
-    console.warn('⚠️ Checksum calculation failed:', error);
     return 'unknown';
   }
 }
@@ -628,8 +570,6 @@ function analyzeChunkSize(chunkSize, timeTaken) {
   const now = Date.now();
   
   if (chunkSize > chunkSizeAlerts.dangerThreshold) {
-    console.error(`🚨 DANGEROUS CHUNK SIZE: ${chunkSizeMB}MB`);
-    
     if (now - chunkSizeAlerts.lastAlertTime > 30000) {
       showToast(`🚨 Recording chunks are too large: ${chunkSizeMB}MB. This may cause upload failures.`);
       chunkSizeAlerts.lastAlertTime = now;
@@ -639,20 +579,13 @@ function analyzeChunkSize(chunkSize, timeTaken) {
     
     if (chunkSizeAlerts.consecutiveWarnings >= 3) {
       showToast("🔄 Multiple large chunks detected. Consider restarting the exam for better performance.");
-      console.warn("Suggesting exam restart due to consistently large chunks");
     }
     
   } else if (chunkSize > chunkSizeAlerts.warningThreshold) {
-    console.warn(`⚠️ Large chunk: ${chunkSizeMB}MB`);
     chunkSizeAlerts.consecutiveWarnings++;
     
   } else {
     chunkSizeAlerts.consecutiveWarnings = 0;
-    console.log(`✅ Good chunk size: ${chunkSizeMB}MB in ${timeTaken}s`);
-  }
-  
-  if (timeTaken > 10) {
-    console.warn(`🐌 Slow chunk generation: ${timeTaken}s for ${chunkSizeMB}MB`);
   }
   
   return {
@@ -707,22 +640,6 @@ function updatePerformanceStats(action, chunkSize = 0, success = true) {
       }
       break;
   }
-  
-  // Log performance summary every minute
-  const elapsed = (Date.now() - performanceStats.startTime) / 1000;
-  if (elapsed > 0 && elapsed % 60 < 1) { 
-    const generatedMB = (performanceStats.totalDataGenerated / 1024 / 1024).toFixed(2);
-    const uploadedMB = (performanceStats.totalDataUploaded / 1024 / 1024).toFixed(2);
-    const successRate = performanceStats.chunksGenerated > 0 ? 
-      ((performanceStats.chunksUploaded / performanceStats.chunksGenerated) * 100).toFixed(1) : 0;
-    
-    console.log(`📈 Performance Summary (${elapsed.toFixed(0)}s):`);
-    console.log(`   Generated: ${performanceStats.chunksGenerated} chunks (${generatedMB}MB)`);
-    console.log(`   Uploaded: ${performanceStats.chunksUploaded} chunks (${uploadedMB}MB)`);
-    console.log(`   Failed: ${performanceStats.chunksFailed} chunks`);
-    console.log(`   Success rate: ${successRate}%`);
-    console.log(`   Data efficiency: ${((parseFloat(uploadedMB) / parseFloat(generatedMB)) * 100).toFixed(1)}%`);
-  }
 }
 
 function updateHeaderStats(headerSize, totalChunkSize) {
@@ -730,21 +647,10 @@ function updateHeaderStats(headerSize, totalChunkSize) {
   headerStats.totalHeaderSize += headerSize;
   headerStats.avgHeaderSize = headerStats.totalHeaderSize / headerStats.totalHeadersCreated;
   headerStats.headerOverhead = (headerStats.totalHeaderSize / totalChunkSize) * 100;
-  
-  // Log stats every 10 chunks
-  if (headerStats.totalHeadersCreated % 10 === 0) {
-    console.log(`📊 Header Statistics:`, {
-      created: headerStats.totalHeadersCreated,
-      avgSize: `${headerStats.avgHeaderSize.toFixed(0)} bytes`,
-      totalOverhead: `${headerStats.headerOverhead.toFixed(2)}%`
-    });
-  }
 }
 
 function handleOversizedChunk(chunkSize) {
   const sizeMB = (chunkSize / (1024 * 1024)).toFixed(2);
-  
-  console.error(`🚫 Chunk rejected: ${sizeMB}MB > 8MB limit`);
   
   // Suggestions for the user
   const suggestions = [
@@ -781,11 +687,9 @@ function showChunkSizeWarning(sizeMB) {
 // ===== EXAM SUBMISSION FUNCTIONS =====
 async function submitExam() {
   if (hasExited) return;
-  console.log("📝 Starting exam submission...");
 
   // Check if recording is active
   if (!isRecording || !mediaRecorder || mediaRecorder.state !== 'recording') {
-    console.warn("⚠️ Recording not active during submission");
     // Don't block submission, but warn
     showToast("⚠️ Warning: Recording may not be active");
   }
@@ -797,14 +701,12 @@ async function submitExam() {
   if (pendingChunks > 0) {
     showUploadingOverlay();
     uploadInProgress = true;
-    console.log(`⏳ Waiting for ${pendingChunks} pending uploads...`);
   }
   
   let waitCount = 0;
   const maxWait = 90; 
   
   while ((uploadInProgress || pendingChunks > 0) && waitCount < maxWait) {
-    console.log(`⏳ Waiting for uploads... (${pendingChunks} pending, uploadInProgress: ${uploadInProgress})`);
     await new Promise(resolve => setTimeout(resolve, 1000));
     waitCount++;
     
@@ -816,7 +718,6 @@ async function submitExam() {
   }
   
   if (waitCount >= maxWait) {
-    console.warn("⚠️ Upload timeout reached, proceeding with submission");
     showToast("⚠️ Upload timeout - submitting anyway");
   }
   
@@ -834,14 +735,13 @@ async function submitExam() {
     alert("Quiz ID not found.");
     return;
   }
-
-  console.log("📤 Submitting quiz answers...");
-  console.log("🔍 Starting API call...");
-  console.time("API Call Duration");
+showUploadingOverlay();
+const progressText = document.getElementById('uploadProgressText');
+if (progressText) {
+  progressText.textContent = "Submitting exam...";
+}
   const result = await window.api.submitQuiz(quizId, answersArray);
-  console.timeEnd("API Call Duration");
-  console.log("🔍 API call finished!");
-
+hideUploadingOverlay();
   if (result.success) {
     alert(result.detail);
     if (!hasExited) {
@@ -857,18 +757,12 @@ async function submitExam() {
 setTimeout(async () => {
   if (window.api.getUploadDebug) {
     const debug = await window.api.getUploadDebug();
-    console.log("🔍 Debug Info:", debug);
   }
 }, 5000);
 
 setInterval(() => {
-  if (mediaRecorder) {
-    console.log(`📊 Status - Recording: ${mediaRecorder.state}, Pending: ${pendingChunks}, Stream active: ${recordingStream ? 'Yes' : 'No'}`);
-  }
-  
   // Check if recording unexpectedly stopped
   if (isRecording && (!mediaRecorder || mediaRecorder.state !== 'recording')) {
-    console.error('⚠️ Recording flag true but MediaRecorder not recording!');
     showToast('⚠️ Recording may have stopped unexpectedly');
   }
 }, 15000); // Check every 15 seconds
@@ -881,39 +775,23 @@ setInterval(async () => {
       try {
         const stats = await window.api.getUploadStats();
         
-        if (parseFloat(stats.avgChunkSizeMB) > 6) {
-          console.warn(`⚠️ High average chunk size detected: ${stats.avgChunkSizeMB}MB`);
-        }
-        
       } catch (error) {
-        console.warn("📊 Could not fetch upload stats:", error.message);
+        // Could not fetch upload stats
       }
     }
   }
   
   // Auto-restart recording if stopped unexpectedly
   if (isRecording && (!mediaRecorder || mediaRecorder.state !== 'recording')) {
-    console.error('🔄 Recording flag true but MediaRecorder not recording!');
     showToast('🔄 Recording stopped unexpectedly - attempting restart...');
     
     try {
       await startRecording();
     } catch (error) {
-      console.error('❌ Failed to restart recording:', error);
       showToast('❌ Could not restart recording. Please exit and re-enter the exam.');
     }
   }
 }, 15000);
-
-// ===== CONSOLE LOGGING AND SYSTEM INFO =====
-console.log("🎯 Exam Recording System Initialized");
-console.log("📋 System Configuration:", {
-  maxChunkSize: `${MAX_CHUNK_SIZE / (1024 * 1024)}MB`,
-  warningThreshold: `${chunkSizeAlerts.warningThreshold / (1024 * 1024)}MB`,
-  dangerThreshold: `${chunkSizeAlerts.dangerThreshold / (1024 * 1024)}MB`,
-  screenResolution: `${screen.width}x${screen.height}`,
-  userAgent: navigator.userAgent.substring(0, 50) + "..."
-});
 
 // ===== ADDITIONAL UTILITY FUNCTIONS =====
 function formatBytes(bytes, decimals = 2) {
@@ -938,4 +816,3 @@ function formatDuration(seconds) {
   }
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
-

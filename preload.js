@@ -17,6 +17,8 @@ getResultSolutions: (index) => ipcRenderer.invoke("get-result-solutions", index)
 navigateToDetails: () => ipcRenderer.invoke("navigate-to-details"),
 // Exam Flow
 startEXam: (id) => ipcRenderer.invoke('start-exam', id),
+showCourseStatistics:(id)=>ipcRenderer.invoke('show-course-statistics',id),
+getCourseStatistics:()=>ipcRenderer.invoke('get-course-statistics'),
 getQuizData: () => ipcRenderer.invoke('get-quiz-data'),
 saveAnswer: (question, answer) => ipcRenderer.invoke('save-answer', question, answer),
 submitAnswer: (question, answer) => ipcRenderer.invoke('submit-answer', question, answer),

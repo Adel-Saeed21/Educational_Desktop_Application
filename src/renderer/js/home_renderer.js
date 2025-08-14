@@ -8,9 +8,12 @@ function logout() {
 
 const currentBtn = document.getElementById("currentBtn");
 const resultBtn = document.getElementById("resultBtn");
+const courseBtn=document.getElementById('CoursesBtn');
 
 const currentContent = document.getElementById("currentContent");
 const resultContent = document.getElementById("resultContent");
+const courseContent=document.getElementById("CoursesContent");
+
 document.getElementById("searchInput").addEventListener("input", () => {
   filterAndRenderResults();
 });
@@ -19,32 +22,71 @@ document.getElementById("statusFilter").addEventListener("change", () => {
   filterAndRenderResults();
 });
 
+courseBtn.addEventListener("click",(e)=>{
+  e.preventDefault();
+  currentContent.classList.add("hidden");
+  resultContent.classList.add("hidden");
+  courseContent.classList.remove("hidden");
+  
+  // Load courses when courses tab is clicked
+  getCourseList();
+})
 
 currentBtn.addEventListener("click", (e) => {
   e.preventDefault();
   currentContent.classList.remove("hidden");
   resultContent.classList.add("hidden");
+  courseContent.classList.add("hidden");
 });
 
 resultBtn.addEventListener("click", (e) => {
   e.preventDefault();
   resultContent.classList.remove("hidden");
   currentContent.classList.add("hidden");
+  courseContent.classList.add("hidden");
 });
-
 
 const showResultBtn = document.getElementById("resultBtn");
 const resultSection = document.getElementById("resultContent");
 const currentSection = document.getElementById("currentContent");
 const submissionTableContainer = document.getElementById("detailedResultsContainer");
 
-
 showResultBtn.addEventListener("click", () => {
   currentSection.classList.add("hidden");
   resultSection.classList.remove("hidden");
+
   showStaticSubmissions(); 
 });
 
+function getCourseList() {
+  window.api.getCourseList().then(response => {
+    if (response.success) {
+      const courseList = document.getElementById('courseList');
+      courseList.innerHTML = ''; // Clear existing courses  
+      response.courses.forEach(course => {
+        const courseCard = document.createElement('div');
+        courseCard.classList.add('course-card');
+        courseCard.innerHTML = `
+          <h2 style="font-size: ${course.name.length > 15 ? '16px' : '20px'}">${course.name}</h2>
+          <p><strong>Level:</strong> ${course.level}</p>
+          <button class="enrollButton" data-id="${course.id}">Show Feedback</button>
+        `;
+        courseList.appendChild(courseCard);
+      });
+      
+      // Attach event handlers after creating the buttons
+      attachShowFeedbackHandlers();
+    } else {
+      console.error('Failed to fetch course list:', response.message);
+      const courseList = document.getElementById('courseList');
+      courseList.innerHTML = `<p style="color:red;">${response.message}</p>`;
+    }
+  }).catch(error => {
+    console.error('Error fetching courses:', error);
+    const courseList = document.getElementById('courseList');
+    courseList.innerHTML = `<p style="color:red;">Failed to load courses</p>`;
+  });
+}
 
 let currentPage = 1;
 const itemsPerPage = 7;
@@ -114,7 +156,8 @@ function showStaticSubmissions(page = 1, results = globalResults) {
         const status = e.target.getAttribute("data-status");
 
         if (status.toLowerCase() === "graded") {
-          localStorage.setItem("selectedSubmissionIndex", index);
+          // Store in memory instead of localStorage
+          window.selectedSubmissionIndex = index;
           window.api.navigateToDetails();
         } else {
           alert("This quiz has not been graded yet.");
@@ -151,9 +194,6 @@ function showStaticSubmissions(page = 1, results = globalResults) {
   }
 }
 
-
-
-
 function renderCurrentQuizes(quizzes) {
   const container = document.getElementById('StartExam');
   container.innerHTML = '';
@@ -186,6 +226,31 @@ function renderCurrentQuizes(quizzes) {
 }
 
 
+function attachShowFeedbackHandlers() {
+  const allShowFeedBackButtons = document.querySelectorAll('.enrollButton');
+  
+  allShowFeedBackButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      const target = e.currentTarget;
+      if (!target) return;
+      
+      const courseId = parseInt(target.dataset.id);
+      target.disabled = true;
+      
+      window.api.showCourseStatistics(courseId).then(response => {
+        if (!response.success) {
+          showSnackbar('Failed to show statistics');
+          target.disabled = false;
+        }
+      }).catch(error => {
+        showSnackbar('Something went wrong!');
+        console.error(error);
+        target.disabled = false;
+      });
+    });
+  });
+}
+
 function attachStartExamHandlers() {
   const allStartButtons = document.querySelectorAll('.StartExamButton');
 
@@ -217,11 +282,9 @@ function attachStartExamHandlers() {
   });
 }
 
-
 function getCurrentQuizes() {
   const loader = document.getElementById('loader');
   loader.style.display = 'block';
-
 
   window.api.getCurrentQuizes().then(response => {
     loader.style.display = 'none';
@@ -232,14 +295,13 @@ function getCurrentQuizes() {
     }
   });
 
-  
   window.api.startQuizzesStream();
 
-  
   window.api.onCurrentQuizzesUpdate((quizzes) => {
     renderCurrentQuizes(quizzes);
   });
 }
+
 function filterAndRenderResults() {
   const searchTerm = document.getElementById("searchInput").value.toLowerCase();
   const selectedStatus = document.getElementById("statusFilter").value;
@@ -256,7 +318,6 @@ function filterAndRenderResults() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
- // getCourseList();
   getCurrentQuizes();
   showStaticSubmissions();
 
@@ -266,7 +327,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
-
 function showSnackbar(message) {
     const snackbar = document.getElementById('snackbar');
     snackbar.textContent = message;
@@ -274,135 +334,9 @@ function showSnackbar(message) {
     setTimeout(() => snackbar.classList.remove('show'), 3000);
 }
 
-
 window.api.startResultsStream();
 
 window.api.onResultsUpdate((results) => {
   globalResults = results;
   filterAndRenderResults();
 });
-
-// function getCurrentQuizes() {
-//   const container = document.getElementById('StartExam');
-//   const loader = document.getElementById('loader');
-//   container.innerHTML = ''; 
-//   loader.style.display = 'block'; 
-
-//   window.api.getCurrentQuizes().then(response => {
-//     loader.style.display = 'none'; 
-
-//     if (response.success) {
-//       response.quizes.forEach((exam) => {
-//   const examCard = document.createElement('div');
-//   examCard.className = 'exam-card';
-
-//   const isSubmitted = exam.submitted; 
-
-//   examCard.innerHTML = `
-//     <input type="checkbox" class="examStatusCheckbox" data-id="${exam.id}" ${isSubmitted ? 'checked' : ''} disabled />
-//     <h2 style="font-size: ${exam.title.length > 15 ? '16px' : '20px'}">${exam.title}</h2>
-//     <p><strong>Time:</strong> ${exam.duration} min</p>
-//     <p><strong>Total Points:</strong> ${exam.total_points}</p>
-//     <button class="StartExamButton" data-id="${exam.id}" ${isSubmitted ? 'disabled' : ''}>
-//       ${isSubmitted ? 'Submmitted' : 'Start Exam'}  
-//     </button>
-//   `;
-
-//   container.appendChild(examCard);
-// });
-    
-
-//     const allStartButtons = document.querySelectorAll('.StartExamButton');
-// allStartButtons.forEach(button => {
-//   button.addEventListener('click', (e) => {
-//     const target = e.currentTarget;
-//     if (!target) return;
-
-//     const examId = parseInt(target.dataset.id);
-//     target.disabled = true;
-
-//     window.api.startEXam(examId).then(response => {
-//       if (response.success) {
-//         showSnackbar(`Exam ${examId} started!`);
-
-//         const checkbox = document.querySelector(`.examStatusCheckbox[data-id="${examId}"]`);
-//         if (checkbox) checkbox.checked = true;
-
-//       } else {
-//         showSnackbar('Failed to start exam');
-//         target.disabled = false;
-//       }
-//     }).catch(error => {
-//       showSnackbar('Something went wrong!');
-//       console.error(error);
-//       target.disabled = false;
-//     });
-//   });
-// });
-
-
-
-//     } else {
-//       console.error('Failed to load exams:', response.message);
-//       container.innerHTML = `<p style="color:red;">${response.message}</p>`;
-//     }
-//   });
-// }
-
-
-
-
-
-
-
-// function getCourseList() {
-//   window.api.getCourseList().then(response => {
-//     if (response.success) {
-//       const courseList = document.getElementById('courseList');
-//       courseList.innerHTML = ''; // Clear existing courses  
-//       response.courses.forEach(course => {
-//         const courseCard = document.createElement('div');
-//         courseCard.classList.add('course-card');
-//         courseCard.innerHTML = `
-//           <h2>${course.name}</h2>
-//           <p><strong>Instructor:</strong> ${course.instructor_name}</p>
-//           <p><strong>Level:</strong> ${course.level}</p>
-//           <button class="enrollButton">Show Feedback</button>
-//         `;
-//         courseList.appendChild(courseCard);
-//       });
-//     } else {
-//       console.error('Failed to fetch course list:', response.message);
-//     }
-//   });
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
