@@ -13,7 +13,9 @@ contextBridge.exposeInMainWorld("api", {
   getCurrentQuizes: () => ipcRenderer.invoke("get-current-quizes"),
   submitQuiz: (quizId, answers) => ipcRenderer.invoke("submit-quiz", quizId, answers),
   getResult: () => ipcRenderer.invoke("get-result"),
-  getResultSolutions: (index) => ipcRenderer.invoke("get-result-solutions", index),
+  getResultQuizId: (index) => ipcRenderer.invoke("get-result-quiz-id",index),
+  getQuizDetails:(id)=>ipcRenderer.invoke("get-quiz-details",id),
+  
   navigateToDetails: () => ipcRenderer.invoke("navigate-to-details"),
   // Exam Flow
   startEXam: (id) => ipcRenderer.invoke("start-exam", id),

@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const totalPointsEl = document.getElementById("totalPoints")
   const finalScoreEl = document.getElementById("finalScore")
 
-  // Show loading
   if (loadingOverlay) {
     loadingOverlay.style.display = "flex"
   }
@@ -24,45 +23,55 @@ document.addEventListener("DOMContentLoaded", async () => {
       throw new Error("Invalid submission index")
     }
 
-    // Get the detailed answers
-    const answers = await window.api.getResultSolutions(submissionIndex)
-
-    if (!answers || answers.length === 0) {
-      showEmptyState()
-      return
+    const quizId = await window.api.getResultQuizId(submissionIndex);
+    if (!quizId) {
+      throw new Error("Quiz ID not found")
     }
 
+    const quizDetailsResponse = await window.api.getQuizDetails(quizId);
+    if (!quizDetailsResponse.success) {
+      throw new Error(quizDetailsResponse.message || "Failed to get quiz details")
+    }
+
+    const submission = quizDetailsResponse.results;
+    if (!submission) {
+      throw new Error("Invalid submission data format")
+    }
+
+    const questions = submission.questions || [];
+    const quizSummary = submission.quiz_summary || {};
+    
     // Calculate summary statistics
-    const totalQuestions = answers.length
-    const totalPoints = answers.reduce((sum, answer) => sum + (answer.max_points || answer.points || 0), 0)
-    const earnedPoints = answers.reduce((sum, answer) => sum + (answer.points || 0), 0)
-    const finalScore = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0
+    const totalQuestions = questions.length;
+    const totalPoints = quizSummary.max_total_points || 0;
+    const earnedPoints = quizSummary.earned_total_points || 0;
+    const finalScore = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
 
     // Update summary display
     if (totalQuestionsEl) totalQuestionsEl.textContent = totalQuestions
     if (totalPointsEl) totalPointsEl.textContent = `${earnedPoints}/${totalPoints}`
     if (finalScoreEl) finalScoreEl.textContent = `${finalScore}%`
 
-    // Clear container and populate answers
+    // Clear container and populate questions
     container.innerHTML = ""
 
-    answers.forEach((answer, index) => {
+    questions.forEach((question, index) => {
       const card = document.createElement("div")
       card.className = "answer-card"
 
       // Handle null/undefined values properly
-      const questionText = answer.question_text || `Question ${index + 1}`
-      const answerText = answer.answer_text || "No answer provided"
-      const points = answer.points !== undefined ? answer.points : 0
-      const maxPoints = answer.max_points || points || 1
-      const feedback = answer.feedback || "No feedback available"
+      const questionText = question.question_text || `Question ${index + 1}`
+      const answerText = question.answer_text || "No answer provided"
+      const points = question.earned_points 
+      const maxPoints = question.max_points 
+      const feedback = question.feedback || "No feedback available"
 
       // Determine score status
       const scorePercentage = maxPoints > 0 ? (points / maxPoints) * 100 : 0
       let scoreClass = "score-low"
       if (scorePercentage >= 80) scoreClass = "score-high"
       else if (scorePercentage >= 60) scoreClass = "score-medium"
-
+    
       card.innerHTML = `
         <div class="question-header">
           <h4 class="question-title">${questionText}</h4>
@@ -87,6 +96,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       container.appendChild(card)
     })
+
+    // Handle empty state
+    if (questions.length === 0) {
+      showEmptyState();
+    }
+
   } catch (error) {
     console.error("Error loading answer details:", error)
     showErrorState(error.message)
@@ -99,10 +114,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Helper functions
   function showEmptyState() {
-    container.style.display = "none"
-    if (emptyState) {
-      emptyState.style.display = "flex"
-    }
+    container.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <h4>No Questions Found</h4>
+        <p>This quiz submission doesn't contain any questions.</p>
+      </div>
+    `;
 
     // Reset summary to show no data
     if (totalQuestionsEl) totalQuestionsEl.textContent = "0"
@@ -131,28 +153,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const exitResultBtn = document.getElementById("exitResultBtn")
-  //const exportBtn = document.getElementById("exportBtn")
-
+  
   if (exitResultBtn) {
     exitResultBtn.addEventListener("click", () => {
       window.location.href = "home.html"
     })
   }
-
-  // if (exportBtn) {
-  //   exportBtn.addEventListener("click", async () => {
-  //     try {
-  //       const index = localStorage.getItem("selectedSubmissionIndex")
-  //       if (index) {
-  //         await window.api.exportResults(Number(index))
-  //         showNotification("Results exported successfully!", "success")
-  //       }
-  //     } catch (error) {
-  //       console.error("Export error:", error)
-  //       showNotification("Failed to export results", "error")
-  //     }
-  //   })
-  // }
 
   // Notification function
   function showNotification(message, type = "info") {
