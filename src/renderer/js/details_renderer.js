@@ -130,7 +130,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (finalScoreEl) finalScoreEl.textContent = "--%"
   }
 
-  // Event listeners for buttons
   const exitResultBtn = document.getElementById("exitResultBtn")
   const exportBtn = document.getElementById("exportBtn")
 
