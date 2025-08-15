@@ -8,6 +8,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   const totalPointsEl = document.getElementById("totalPoints")
   const finalScoreEl = document.getElementById("finalScore")
 
+  const classRankEl = document.getElementById("classRank")
+  const totalParticipantsEl = document.getElementById("totalParticipants")
+  const rankingBadgeEl = document.getElementById("rankingBadge")
+  const correctCountEl = document.getElementById("correctCount")
+  const incorrectCountEl = document.getElementById("incorrectCount")
+  const accuracyProgressEl = document.getElementById("accuracyProgress")
+  const submissionDateEl = document.getElementById("submissionDate")
+  const gradedDateEl = document.getElementById("gradedDate")
+  const submissionStatusEl = document.getElementById("submissionStatus")
+  const instructorFeedbackEl = document.getElementById("instructorFeedback")
+  const instructorFeedbackSection = document.getElementById("instructorFeedbackSection")
+
   if (loadingOverlay) {
     loadingOverlay.style.display = "flex"
   }
@@ -23,34 +35,38 @@ document.addEventListener("DOMContentLoaded", async () => {
       throw new Error("Invalid submission index")
     }
 
-    const quizId = await window.api.getResultQuizId(submissionIndex);
+    const quizId = await window.api.getResultQuizId(submissionIndex)
     if (!quizId) {
       throw new Error("Quiz ID not found")
     }
 
-    const quizDetailsResponse = await window.api.getQuizDetails(quizId);
+    const quizDetailsResponse = await window.api.getQuizDetails(quizId)
     if (!quizDetailsResponse.success) {
       throw new Error(quizDetailsResponse.message || "Failed to get quiz details")
     }
 
-    const submission = quizDetailsResponse.results;
+    const submission = quizDetailsResponse.results
     if (!submission) {
       throw new Error("Invalid submission data format")
     }
 
-    const questions = submission.questions || [];
-    const quizSummary = submission.quiz_summary || {};
-    
+    const questions = submission.questions || []
+    const quizSummary = submission.quiz_summary || {}
+
     // Calculate summary statistics
-    const totalQuestions = questions.length;
-    const totalPoints = quizSummary.max_total_points || 0;
-    const earnedPoints = quizSummary.earned_total_points || 0;
-    const finalScore = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+    const totalQuestions = questions.length
+    const totalPoints = quizSummary.max_total_points || 0
+    const earnedPoints = quizSummary.earned_total_points || 0
+    const finalScore = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0
 
     // Update summary display
     if (totalQuestionsEl) totalQuestionsEl.textContent = totalQuestions
     if (totalPointsEl) totalPointsEl.textContent = `${earnedPoints}/${totalPoints}`
     if (finalScoreEl) finalScoreEl.textContent = `${finalScore}%`
+
+    updatePerformanceStats(submission)
+
+    updateInstructorFeedback(submission)
 
     // Clear container and populate questions
     container.innerHTML = ""
@@ -62,8 +78,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Handle null/undefined values properly
       const questionText = question.question_text || `Question ${index + 1}`
       const answerText = question.answer_text || "No answer provided"
-      const points = question.earned_points 
-      const maxPoints = question.max_points 
+      const points = question.earned_points
+      const maxPoints = question.max_points
       const feedback = question.feedback || "No feedback available"
 
       // Determine score status
@@ -71,7 +87,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       let scoreClass = "score-low"
       if (scorePercentage >= 80) scoreClass = "score-high"
       else if (scorePercentage >= 60) scoreClass = "score-medium"
-    
+
       card.innerHTML = `
         <div class="question-header">
           <h4 class="question-title">${questionText}</h4>
@@ -99,9 +115,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Handle empty state
     if (questions.length === 0) {
-      showEmptyState();
+      showEmptyState()
     }
-
   } catch (error) {
     console.error("Error loading answer details:", error)
     showErrorState(error.message)
@@ -109,6 +124,96 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Hide loading
     if (loadingOverlay) {
       loadingOverlay.style.display = "none"
+    }
+  }
+
+  function updatePerformanceStats(submission) {
+    // Update ranking information
+    if (classRankEl && submission.rank_in_quiz) {
+      classRankEl.textContent = submission.rank_in_quiz
+    }
+    if (totalParticipantsEl && submission.total_participants) {
+      totalParticipantsEl.textContent = submission.total_participants
+    }
+
+    // Update ranking badge
+    if (rankingBadgeEl && submission.rank_in_quiz && submission.total_participants) {
+      const rank = submission.rank_in_quiz
+      const total = submission.total_participants
+      const percentile = Math.round(((total - rank + 1) / total) * 100)
+
+      let badgeText = `${percentile}th percentile`
+      let badgeClass = "percentile-low"
+
+      if (percentile >= 90) {
+        badgeText = "Top 10%"
+        badgeClass = "percentile-high"
+      } else if (percentile >= 75) {
+        badgeText = "Top 25%"
+        badgeClass = "percentile-medium"
+      } else if (percentile >= 50) {
+        badgeText = "Top 50%"
+        badgeClass = "percentile-medium"
+      }
+
+      rankingBadgeEl.textContent = badgeText
+      rankingBadgeEl.className = `ranking-badge ${badgeClass}`
+    }
+
+    // Update accuracy statistics
+    if (correctCountEl && submission.correct_count !== undefined) {
+      correctCountEl.textContent = submission.correct_count
+    }
+    if (incorrectCountEl && submission.incorrect_count !== undefined) {
+      incorrectCountEl.textContent = submission.incorrect_count
+    }
+
+    // Update accuracy progress bar
+    if (accuracyProgressEl && submission.correct_count !== undefined && submission.incorrect_count !== undefined) {
+      const total = submission.correct_count + submission.incorrect_count
+      const accuracy = total > 0 ? (submission.correct_count / total) * 100 : 0
+      accuracyProgressEl.style.width = `${accuracy}%`
+    }
+
+    // Update submission dates
+    if (submissionDateEl && submission.submission_date) {
+      const date = new Date(submission.submission_date)
+      submissionDateEl.textContent = date.toLocaleDateString() + " " + date.toLocaleTimeString()
+    }
+    if (gradedDateEl && submission.graded_at) {
+      const date = new Date(submission.graded_at)
+      gradedDateEl.textContent = date.toLocaleDateString() + " " + date.toLocaleTimeString()
+    }
+
+    // Update submission status
+    if (submissionStatusEl && submission.status) {
+      const status = submission.status
+      const statusText = status.charAt(0).toUpperCase() + status.slice(1)
+      let statusClass = "status-default"
+
+      if (status === "released") {
+        statusClass = "status-released"
+      } else if (status === "submitted") {
+        statusClass = "status-submitted"
+      }
+
+      submissionStatusEl.textContent = statusText
+      submissionStatusEl.className = `status-badge ${statusClass}`
+    }
+  }
+
+  function updateInstructorFeedback(submission) {
+    if (submission.instructor_feedback && submission.instructor_feedback.trim()) {
+      if (instructorFeedbackEl) {
+        instructorFeedbackEl.textContent = submission.instructor_feedback
+      }
+      if (instructorFeedbackSection) {
+        instructorFeedbackSection.style.display = "block"
+      }
+    } else {
+      if (instructorFeedbackSection) {
+        instructorFeedbackSection.style.display = "none"
+      }
     }
   }
 
@@ -124,7 +229,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <h4>No Questions Found</h4>
         <p>This quiz submission doesn't contain any questions.</p>
       </div>
-    `;
+    `
 
     // Reset summary to show no data
     if (totalQuestionsEl) totalQuestionsEl.textContent = "0"
@@ -153,7 +258,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const exitResultBtn = document.getElementById("exitResultBtn")
-  
+
   if (exitResultBtn) {
     exitResultBtn.addEventListener("click", () => {
       window.location.href = "home.html"

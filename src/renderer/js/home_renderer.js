@@ -623,7 +623,7 @@ function setupResultsEventListeners(results, page, totalPages) {
         localStorage.setItem("selectedSubmissionIndex", index.toString())
         window.api.navigateToDetails()
       } else {
-        showSnackbar("This quiz has not been graded yet.", "warning")
+        showSnackbar("This quiz has not been released yet.", "warning")
       }
     })
   })
