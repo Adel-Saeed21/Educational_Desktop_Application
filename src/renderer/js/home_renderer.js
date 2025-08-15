@@ -619,7 +619,7 @@ function setupResultsEventListeners(results, page, totalPages) {
       const index = Number.parseInt(e.target.getAttribute("data-index"))
       const status = e.target.getAttribute("data-status")
 
-      if (status.toLowerCase() === "graded") {
+      if (status.toLowerCase() === "released") {
         localStorage.setItem("selectedSubmissionIndex", index.toString())
         window.api.navigateToDetails()
       } else {

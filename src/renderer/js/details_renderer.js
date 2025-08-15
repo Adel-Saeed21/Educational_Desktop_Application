@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const exitResultBtn = document.getElementById("exitResultBtn")
-  const exportBtn = document.getElementById("exportBtn")
+  //const exportBtn = document.getElementById("exportBtn")
 
   if (exitResultBtn) {
     exitResultBtn.addEventListener("click", () => {
@@ -139,20 +139,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     })
   }
 
-  if (exportBtn) {
-    exportBtn.addEventListener("click", async () => {
-      try {
-        const index = localStorage.getItem("selectedSubmissionIndex")
-        if (index) {
-          await window.api.exportResults(Number(index))
-          showNotification("Results exported successfully!", "success")
-        }
-      } catch (error) {
-        console.error("Export error:", error)
-        showNotification("Failed to export results", "error")
-      }
-    })
-  }
+  // if (exportBtn) {
+  //   exportBtn.addEventListener("click", async () => {
+  //     try {
+  //       const index = localStorage.getItem("selectedSubmissionIndex")
+  //       if (index) {
+  //         await window.api.exportResults(Number(index))
+  //         showNotification("Results exported successfully!", "success")
+  //       }
+  //     } catch (error) {
+  //       console.error("Export error:", error)
+  //       showNotification("Failed to export results", "error")
+  //     }
+  //   })
+  // }
 
   // Notification function
   function showNotification(message, type = "info") {

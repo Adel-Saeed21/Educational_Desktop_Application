@@ -140,11 +140,11 @@ function showResetPasswordForm(email, otp) {
         }
     });
     
-    // Add back to OTP button functionality
+    
     document.getElementById('backToOtpBtn').addEventListener('click', (e) => {
         e.preventDefault();
         document.getElementById('resetPasswordForm').remove();
         otpForm.style.display = 'block';
-        startTimer(); // Restart the timer
+        startTimer();
     });
 }
