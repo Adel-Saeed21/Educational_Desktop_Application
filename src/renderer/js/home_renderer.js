@@ -1,342 +1,746 @@
-window.api.getUsername().then(({ currentUser }) => {
-  document.getElementById('username').innerText = `Welcome, ${currentUser}`;
-});
+// Global variables
+let currentPage = 1
+const itemsPerPage = 7
+let globalResults = null
+let currentQuizzes = []
+let currentCourses = []
 
-function logout() {
-   window.api.logout();
-}
-
-const currentBtn = document.getElementById("currentBtn");
-const resultBtn = document.getElementById("resultBtn");
-const courseBtn=document.getElementById('CoursesBtn');
-
-const currentContent = document.getElementById("currentContent");
-const resultContent = document.getElementById("resultContent");
-const courseContent=document.getElementById("CoursesContent");
-
-document.getElementById("searchInput").addEventListener("input", () => {
-  filterAndRenderResults();
-});
-
-document.getElementById("statusFilter").addEventListener("change", () => {
-  filterAndRenderResults();
-});
-
-courseBtn.addEventListener("click",(e)=>{
-  e.preventDefault();
-  currentContent.classList.add("hidden");
-  resultContent.classList.add("hidden");
-  courseContent.classList.remove("hidden");
-  
-  // Load courses when courses tab is clicked
-  getCourseList();
+// Initialize the application
+window.addEventListener("DOMContentLoaded", async () => {
+  initializeApp()
 })
 
-currentBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  currentContent.classList.remove("hidden");
-  resultContent.classList.add("hidden");
-  courseContent.classList.add("hidden");
-});
+async function initializeApp() {
+  try {
+    // Load username
+    await loadUsername()
 
-resultBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  resultContent.classList.remove("hidden");
-  currentContent.classList.add("hidden");
-  courseContent.classList.add("hidden");
-});
+    // Initialize theme
+    initializeTheme()
 
-const showResultBtn = document.getElementById("resultBtn");
-const resultSection = document.getElementById("resultContent");
-const currentSection = document.getElementById("currentContent");
-const submissionTableContainer = document.getElementById("detailedResultsContainer");
+    // Setup event listeners
+    setupEventListeners()
 
-showResultBtn.addEventListener("click", () => {
-  currentSection.classList.add("hidden");
-  resultSection.classList.remove("hidden");
+    // Load initial data
+    await loadInitialData()
 
-  showStaticSubmissions(); 
-});
-
-function getCourseList() {
-  window.api.getCourseList().then(response => {
-    if (response.success) {
-      const courseList = document.getElementById('courseList');
-      courseList.innerHTML = ''; // Clear existing courses  
-      response.courses.forEach(course => {
-        const courseCard = document.createElement('div');
-        courseCard.classList.add('course-card');
-        courseCard.innerHTML = `
-          <h2 style="font-size: ${course.name.length > 15 ? '16px' : '20px'}">${course.name}</h2>
-          <p><strong>Level:</strong> ${course.level}</p>
-          <button class="enrollButton" data-id="${course.id}">Show Feedback</button>
-        `;
-        courseList.appendChild(courseCard);
-      });
-      
-      // Attach event handlers after creating the buttons
-      attachShowFeedbackHandlers();
-    } else {
-      console.error('Failed to fetch course list:', response.message);
-      const courseList = document.getElementById('courseList');
-      courseList.innerHTML = `<p style="color:red;">${response.message}</p>`;
+    // Check for login success message
+    const justLoggedIn = await window.api.checkJustLoggedIn()
+    if (justLoggedIn) {
+      showSnackbar("Login successful!", "success")
     }
-  }).catch(error => {
-    console.error('Error fetching courses:', error);
-    const courseList = document.getElementById('courseList');
-    courseList.innerHTML = `<p style="color:red;">Failed to load courses</p>`;
-  });
-}
-
-let currentPage = 1;
-const itemsPerPage = 7;
-let globalResults = null;
-
-function showStaticSubmissions(page = 1, results = globalResults) {
-  const renderPage = (resultsToRender) => {
-    currentPage = page;
-    const startIndex = (page - 1) * itemsPerPage;
-    const paginatedResults = resultsToRender.slice(startIndex, startIndex + itemsPerPage);
-
-    let html = `
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Quiz Title</th>
-            <th>Status</th>
-            <th>Grade</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
-
-    paginatedResults.forEach((submission, index) => {
-      html += `
-        <tr>
-          <td>${startIndex + index + 1}</td>
-          <td>${submission.quiz_title}</td>
-          <td>${submission.status}</td>
-          <td>${submission.grade !== null ? submission.grade : "—"}</td>
-          <td>
-            <button class="view-details-btn" 
-                    data-index="${startIndex + index}" 
-                    data-status="${submission.status}">
-              View Details
-            </button>
-          </td>
-        </tr>
-      `;
-    });
-
-    html += `</tbody></table>`;
-
-    const totalPages = Math.ceil(resultsToRender.length / itemsPerPage);
-    html += `<div class="pagination-controls" style="margin-top:10px;">`;
-
-    if (page > 1) {
-      html += `<button id="prevPage">Previous</button>`;
-    }
-
-    html += `<span style="margin: 0 10px;">Page ${page} of ${totalPages}</span>`;
-
-    if (page < totalPages) {
-      html += `<button id="nextPage">Next</button>`;
-    }
-
-    html += `</div>`;
-
-    const submissionTableContainer = document.getElementById("submissionTableContainer");
-    submissionTableContainer.innerHTML = html;
-
-    document.querySelectorAll(".view-details-btn").forEach(button => {
-      button.addEventListener("click", (e) => {
-        const index = e.target.getAttribute("data-index");
-        const status = e.target.getAttribute("data-status");
-
-        if (status.toLowerCase() === "graded") {
-          // Store in memory instead of localStorage
-          window.selectedSubmissionIndex = index;
-          window.api.navigateToDetails();
-        } else {
-          alert("This quiz has not been graded yet.");
-        }
-      });
-    });
-
-    if (page > 1) {
-      document.getElementById("prevPage").addEventListener("click", () => {
-        showStaticSubmissions(page - 1, resultsToRender);
-      });
-    }
-
-    if (page < totalPages) {
-      document.getElementById("nextPage").addEventListener("click", () => {
-        showStaticSubmissions(page + 1, resultsToRender);
-      });
-    }
-  };
-
-  if (results) {
-    renderPage(results);
-  } else {
-    window.api.getResult().then(staticSubmissions => {
-      if (!Array.isArray(staticSubmissions.results)) {
-        console.error("Expected an array, got:", staticSubmissions);
-        return;
-      }
-      globalResults = staticSubmissions.results;
-      filterAndRenderResults(); 
-    }).catch(err => {
-      console.error("Error loading results:", err.message);
-    });
+  } catch (error) {
+    console.error("Error initializing app:", error)
+    showSnackbar("Error loading application", "error")
   }
 }
 
-function renderCurrentQuizes(quizzes) {
-  const container = document.getElementById('StartExam');
-  container.innerHTML = '';
+// Load username
+async function loadUsername() {
+  try {
+    const { currentUser } = await window.api.getUsername()
+    document.getElementById("username").innerText = `Welcome, ${currentUser}`
+  } catch (error) {
+    console.error("Error loading username:", error)
+    document.getElementById("username").innerText = "Welcome, User"
+  }
+}
+
+// Initialize theme
+function initializeTheme() {
+  const themeToggle = document.getElementById("themeToggle")
+  const currentTheme = localStorage.getItem("theme") || "dark"
+  document.documentElement.setAttribute("data-theme", currentTheme)
+
+  themeToggle.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme")
+    const newTheme = currentTheme === "dark" ? "light" : "dark"
+    document.documentElement.setAttribute("data-theme", newTheme)
+    localStorage.setItem("theme", newTheme)
+  })
+}
+
+// Setup all event listeners
+function setupEventListeners() {
+  // Navigation tabs
+  setupTabNavigation()
+
+  // Header buttons
+  setupHeaderButtons()
+
+  // Search and filter
+  setupSearchAndFilter()
+
+  // Modal
+  setupModal()
+}
+
+// Setup tab navigation
+function setupTabNavigation() {
+  const tabs = document.querySelectorAll(".nav-tab")
+  const contents = document.querySelectorAll(".tab-content")
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", (e) => {
+      e.preventDefault()
+      const targetTab = tab.getAttribute("data-tab")
+
+      // Update active tab
+      tabs.forEach((t) => t.classList.remove("active"))
+      tab.classList.add("active")
+
+      // Update active content
+      contents.forEach((content) => {
+        content.classList.remove("active")
+        if (
+          content.id === `${targetTab}Content` ||
+          (targetTab === "current" && content.id === "currentContent") ||
+          (targetTab === "courses" && content.id === "CoursesContent") ||
+          (targetTab === "results" && content.id === "resultContent")
+        ) {
+          content.classList.add("active")
+        }
+      })
+
+      // Load data for the selected tab
+      loadTabData(targetTab)
+    })
+  })
+}
+
+// Setup header buttons
+function setupHeaderButtons() {
+  // Logout button
+  const logoutBtn = document.getElementById("logoutBtn")
+  logoutBtn.addEventListener("click", (e) => {
+    e.preventDefault()
+    showConfirmModal("Confirm Logout", "Are you sure you want to logout?", () => {
+      try {
+        window.api.logout()
+      } catch (error) {
+        console.error("Logout error:", error)
+        showSnackbar("Error during logout", "error")
+      }
+    })
+  })
+
+  // Refresh button
+  const refreshBtn = document.getElementById("refreshBtn")
+  refreshBtn.addEventListener("click", async (e) => {
+    e.preventDefault()
+    await refreshCurrentTab()
+    showSnackbar("Data refreshed", "success")
+  })
+}
+
+// Setup search and filter functionality
+function setupSearchAndFilter() {
+  // Quiz search
+  const quizSearchInput = document.getElementById("quizSearchInput")
+  if (quizSearchInput) {
+    quizSearchInput.addEventListener(
+      "input",
+      debounce(() => {
+        filterQuizzes()
+      }, 300),
+    )
+  }
+
+  // Course search
+  const courseSearchInput = document.getElementById("courseSearchInput")
+  if (courseSearchInput) {
+    courseSearchInput.addEventListener(
+      "input",
+      debounce(() => {
+        filterCourses()
+      }, 300),
+    )
+  }
+
+  // Results search and filter
+  const searchInput = document.getElementById("searchInput")
+  const statusFilter = document.getElementById("statusFilter")
+
+  if (searchInput) {
+    searchInput.addEventListener(
+      "input",
+      debounce(() => {
+        filterAndRenderResults()
+      }, 300),
+    )
+  }
+
+  if (statusFilter) {
+    statusFilter.addEventListener("change", () => {
+      filterAndRenderResults()
+    })
+  }
+}
+
+// Setup modal functionality
+function setupModal() {
+  const modal = document.getElementById("confirmModal")
+  const modalClose = document.getElementById("modalClose")
+  const modalCancel = document.getElementById("modalCancel")
+  ;[modalClose, modalCancel].forEach((btn) => {
+    if (btn) {
+      btn.addEventListener("click", () => {
+        hideModal()
+      })
+    }
+  })
+
+  // Close modal on backdrop click
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      hideModal()
+    }
+  })
+}
+
+// Load initial data
+async function loadInitialData() {
+  await loadTabData("current")
+}
+
+// Load data for specific tab
+async function loadTabData(tab) {
+  switch (tab) {
+    case "current":
+      await getCurrentQuizzes()
+      break
+    case "courses":
+      await getCourseList()
+      break
+    case "results":
+      await showStaticSubmissions()
+      break
+  }
+}
+
+// Refresh current active tab
+async function refreshCurrentTab() {
+  const activeTab = document.querySelector(".nav-tab.active")
+  if (activeTab) {
+    const tabType = activeTab.getAttribute("data-tab")
+    await loadTabData(tabType)
+  }
+}
+
+// Get current quizzes
+async function getCurrentQuizzes() {
+  const container = document.getElementById("StartExam")
+  showLoadingState(container)
+
+  try {
+    const response = await window.api.getCurrentQuizes()
+
+    if (response.success) {
+      currentQuizzes = response.quizes || []
+      renderCurrentQuizzes(currentQuizzes)
+
+      // Setup real-time updates
+      window.api.startQuizzesStream()
+      window.api.onCurrentQuizzesUpdate((quizzes) => {
+        currentQuizzes = quizzes
+        renderCurrentQuizzes(currentQuizzes)
+      })
+    } else {
+      showEmptyState(container, "No Quizzes Available", response.message || "You don't have any quizzes at the moment.")
+    }
+  } catch (error) {
+    console.error("Error loading quizzes:", error)
+    showErrorState(container, "Failed to load quizzes")
+  }
+}
+
+// Render current quizzes
+function renderCurrentQuizzes(quizzes) {
+  const container = document.getElementById("StartExam")
 
   if (!quizzes || quizzes.length === 0) {
-    container.innerHTML = `<p style="color:red;">You don't have a quiz now</p>`;
-    return;
+    showEmptyState(container, "No Quizzes Available", "You don't have any quizzes at the moment.")
+    return
   }
 
-  quizzes.forEach((exam) => {
-    const examCard = document.createElement('div');
-    examCard.className = 'exam-card';
+  container.innerHTML = ""
 
-    const isSubmitted = exam.submitted;
-
-    examCard.innerHTML = `
-      <input type="checkbox" class="examStatusCheckbox" data-id="${exam.id}" ${isSubmitted ? 'checked' : ''} disabled />
-      <h2 style="font-size: ${exam.title.length > 15 ? '16px' : '20px'}">${exam.title}</h2>
-      <p><strong>Time:</strong> ${exam.duration} min</p>
-      <p><strong>Total Points:</strong> ${exam.total_points}</p>
-      <button class="StartExamButton" data-id="${exam.id}" ${isSubmitted ? 'disabled' : ''}>
-        ${isSubmitted ? 'Submitted' : 'Start Exam'}
-      </button>
-    `;
-
-    container.appendChild(examCard);
-  });
-
-  attachStartExamHandlers();
+  quizzes.forEach((quiz) => {
+    const quizCard = createQuizCard(quiz)
+    container.appendChild(quizCard)
+  })
 }
 
+// Create quiz card element
+function createQuizCard(quiz) {
+  const card = document.createElement("div")
+  card.className = "quiz-card"
 
-function attachShowFeedbackHandlers() {
-  const allShowFeedBackButtons = document.querySelectorAll('.enrollButton');
-  
-  allShowFeedBackButtons.forEach(button => {
-    button.addEventListener('click', (e) => {
-      const target = e.currentTarget;
-      if (!target) return;
-      
-      const courseId = parseInt(target.dataset.id);
-      target.disabled = true;
-      
-      window.api.showCourseStatistics(courseId).then(response => {
-        if (!response.success) {
-          showSnackbar('Failed to show statistics');
-          target.disabled = false;
-        }
-      }).catch(error => {
-        showSnackbar('Something went wrong!');
-        console.error(error);
-        target.disabled = false;
-      });
-    });
-  });
-}
+  const isSubmitted = quiz.submitted
 
-function attachStartExamHandlers() {
-  const allStartButtons = document.querySelectorAll('.StartExamButton');
+  card.innerHTML = `
+        <div class="quiz-status ${isSubmitted ? "completed" : ""}"></div>
+        <h3 class="quiz-title">${escapeHtml(quiz.title)}</h3>
+        <div class="quiz-meta">
+            <div class="quiz-meta-item">
+                <svg class="quiz-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12,6 12,12 16,14"></polyline>
+                </svg>
+                <span><strong>Duration:</strong> ${quiz.duration} minutes</span>
+            </div>
+            <div class="quiz-meta-item">
+                <svg class="quiz-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                </svg>
+                <span><strong>Points:</strong> ${quiz.total_points}</span>
+            </div>
+        </div>
+        <div class="quiz-actions">
+            <button class="btn ${isSubmitted ? "btn-secondary" : "btn-primary"} start-exam-btn" 
+                    data-id="${quiz.id}" 
+                    ${isSubmitted ? "disabled" : ""}>
+                ${isSubmitted ? "Submitted" : "Start Exam"}
+            </button>
+        </div>
+    `
 
-  allStartButtons.forEach(button => {
-    button.addEventListener('click', (e) => {
-      const target = e.currentTarget;
-      if (!target) return;
-
-      const examId = parseInt(target.dataset.id);
-      target.disabled = true;
-
-      window.api.startEXam(examId).then(response => {
-        if (response.success) {
-          showSnackbar(`Exam ${examId} started!`);
-
-          const checkbox = document.querySelector(`.examStatusCheckbox[data-id="${examId}"]`);
-          if (checkbox) checkbox.checked = true;
-
-        } else {
-          showSnackbar('Failed to start exam');
-          target.disabled = false;
-        }
-      }).catch(error => {
-        showSnackbar('Something went wrong!');
-        console.error(error);
-        target.disabled = false;
-      });
-    });
-  });
-}
-
-function getCurrentQuizes() {
-  const loader = document.getElementById('loader');
-  loader.style.display = 'block';
-
-  window.api.getCurrentQuizes().then(response => {
-    loader.style.display = 'none';
-    if (response.success) {
-      renderCurrentQuizes(response.quizes);
-    } else {
-      document.getElementById('StartExam').innerHTML = `<p style="color:red;">${response.message}</p>`;
+  // Add event listener to start exam button
+  const startBtn = card.querySelector(".start-exam-btn")
+  startBtn.addEventListener("click", (e) => {
+    e.preventDefault()
+    if (!isSubmitted) {
+      startExam(quiz.id, startBtn)
     }
-  });
+  })
 
-  window.api.startQuizzesStream();
+  return card
+}
 
-  window.api.onCurrentQuizzesUpdate((quizzes) => {
-    renderCurrentQuizes(quizzes);
-  });
+// Start exam
+async function startExam(examId, button) {
+  const originalText = button.textContent
+  button.disabled = true
+  button.textContent = "Starting..."
+
+  try {
+    const response = await window.api.startEXam(examId)
+
+    if (response.success) {
+      showSnackbar(`Exam started successfully!`, "success")
+
+      // Update the quiz card to show as submitted
+      const card = button.closest(".quiz-card")
+      const statusIndicator = card.querySelector(".quiz-status")
+      statusIndicator.classList.add("completed")
+
+      button.textContent = "Submitted"
+      button.classList.remove("btn-primary")
+      button.classList.add("btn-secondary")
+    } else {
+      showSnackbar("Failed to start exam", "error")
+      button.disabled = false
+      button.textContent = originalText
+    }
+  } catch (error) {
+    console.error("Error starting exam:", error)
+    showSnackbar("Something went wrong!", "error")
+    button.disabled = false
+    button.textContent = originalText
+  }
+}
+
+// Get course list
+async function getCourseList() {
+  const container = document.getElementById("courseList")
+  showLoadingState(container)
+
+  try {
+    const response = await window.api.getCourseList()
+
+    if (response.success) {
+      currentCourses = response.courses || []
+      renderCourses(currentCourses)
+    } else {
+      showEmptyState(container, "No Courses Available", response.message || "You don't have any courses at the moment.")
+    }
+  } catch (error) {
+    console.error("Error loading courses:", error)
+    showErrorState(container, "Failed to load courses")
+  }
+}
+
+// Render courses
+function renderCourses(courses) {
+  const container = document.getElementById("courseList")
+
+  if (!courses || courses.length === 0) {
+    showEmptyState(container, "No Courses Available", "You don't have any courses at the moment.")
+    return
+  }
+
+  container.innerHTML = ""
+
+  courses.forEach((course) => {
+    const courseCard = createCourseCard(course)
+    container.appendChild(courseCard)
+  })
+}
+
+// Create course card element
+function createCourseCard(course) {
+  const card = document.createElement("div")
+  card.className = "course-card"
+
+  card.innerHTML = `
+        <h3 class="quiz-title">${escapeHtml(course.name)}</h3>
+        <div class="quiz-meta">
+            <div class="quiz-meta-item">
+                <svg class="quiz-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+                <span><strong>Level:</strong> ${escapeHtml(course.level)}</span>
+            </div>
+        </div>
+        <div class="quiz-actions">
+            <button class="btn btn-success show-feedback-btn" data-id="${course.id}">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z"/>
+                    <path d="M19 7h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+                </svg>
+                View Course Statistics
+            </button>
+        </div>
+    `
+
+  // Add event listener to show feedback button
+  const feedbackBtn = card.querySelector(".show-feedback-btn")
+  feedbackBtn.addEventListener("click", (e) => {
+    e.preventDefault()
+    showCourseFeedback(course.id, feedbackBtn)
+  })
+
+  return card
+}
+
+async function showCourseFeedback(courseId, button) {
+  const originalText = button.innerHTML
+  button.disabled = true
+  button.innerHTML = `
+    <svg class="btn-icon spinning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 12a9 9 0 11-6.219-8.56"/>
+    </svg>
+    Loading Statistics...
+  `
+
+  try {
+    const response = await window.api.showCourseStatistics(courseId)
+
+    if (response.success) {
+      showSnackbar("Course statistics opened successfully!", "success")
+    } else {
+      showSnackbar("Failed to load course statistics", "error")
+    }
+  } catch (error) {
+    console.error("Error showing course statistics:", error)
+    showSnackbar("Something went wrong while loading statistics!", "error")
+  } finally {
+    button.disabled = false
+    button.innerHTML = originalText
+  }
+}
+
+// Show static submissions (results)
+async function showStaticSubmissions(page = 1, results = globalResults) {
+  const container = document.getElementById("submissionTableContainer")
+
+  if (!results) {
+    showLoadingState(container)
+
+    try {
+      const response = await window.api.getResult()
+
+      if (Array.isArray(response.results)) {
+        globalResults = response.results
+
+        // Setup real-time updates
+        window.api.startResultsStream()
+        window.api.onResultsUpdate((results) => {
+          globalResults = results
+          filterAndRenderResults()
+        })
+
+        filterAndRenderResults()
+      } else {
+        showEmptyState(container, "No Results Available", "You don't have any quiz results yet.")
+      }
+    } catch (error) {
+      console.error("Error loading results:", error)
+      showErrorState(container, "Failed to load results")
+    }
+    return
+  }
+
+  renderResultsTable(results, page)
+}
+
+// Render results table
+function renderResultsTable(results, page) {
+  const container = document.getElementById("submissionTableContainer")
+  currentPage = page
+
+  if (!results || results.length === 0) {
+    showEmptyState(container, "No Results Found", "No results match your current filters.")
+    return
+  }
+
+  const startIndex = (page - 1) * itemsPerPage
+  const paginatedResults = results.slice(startIndex, startIndex + itemsPerPage)
+  const totalPages = Math.ceil(results.length / itemsPerPage)
+
+  let html = `
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Quiz Title</th>
+                    <th>Status</th>
+                    <th>Grade</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+    `
+
+  paginatedResults.forEach((submission, index) => {
+    const actualIndex = startIndex + index
+    const grade = submission.grade !== null ? submission.grade : "—"
+    const gradeClass = getGradeClass(submission.grade)
+
+    html += `
+            <tr>
+                <td>${actualIndex + 1}</td>
+                <td>${escapeHtml(submission.quiz_title)}</td>
+                <td><span class="status-badge ${submission.status.toLowerCase()}">${submission.status}</span></td>
+                <td><span class="grade-display ${gradeClass}">${grade}</span></td>
+                <td>
+                    <button class="btn btn-secondary view-details-btn" 
+                            data-index="${actualIndex}" 
+                            data-status="${submission.status}">
+                        View Details
+                    </button>
+                </td>
+            </tr>
+        `
+  })
+
+  html += `</tbody></table>`
+
+  // Add pagination
+  if (totalPages > 1) {
+    html += `
+            <div class="pagination-controls">
+                <button id="prevPage" ${page <= 1 ? "disabled" : ""}>Previous</button>
+                <span class="pagination-info">Page ${page} of ${totalPages}</span>
+                <button id="nextPage" ${page >= totalPages ? "disabled" : ""}>Next</button>
+            </div>
+        `
+  }
+
+  container.innerHTML = html
+
+  // Add event listeners
+  setupResultsEventListeners(results, page, totalPages)
+}
+
+// Setup results event listeners
+function setupResultsEventListeners(results, page, totalPages) {
+  // View details buttons
+  document.querySelectorAll(".view-details-btn").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      const index = Number.parseInt(e.target.getAttribute("data-index"))
+      const status = e.target.getAttribute("data-status")
+
+      if (status.toLowerCase() === "graded") {
+        localStorage.setItem("selectedSubmissionIndex", index.toString())
+        window.api.navigateToDetails()
+      } else {
+        showSnackbar("This quiz has not been graded yet.", "warning")
+      }
+    })
+  })
+
+  // Pagination buttons
+  const prevBtn = document.getElementById("prevPage")
+  const nextBtn = document.getElementById("nextPage")
+
+  if (prevBtn && page > 1) {
+    prevBtn.addEventListener("click", () => {
+      showStaticSubmissions(page - 1, results)
+    })
+  }
+
+  if (nextBtn && page < totalPages) {
+    nextBtn.addEventListener("click", () => {
+      showStaticSubmissions(page + 1, results)
+    })
+  }
+}
+
+// Filter functions
+function filterQuizzes() {
+  const searchTerm = document.getElementById("quizSearchInput").value.toLowerCase()
+  const filtered = currentQuizzes.filter((quiz) => quiz.title.toLowerCase().includes(searchTerm))
+  renderCurrentQuizzes(filtered)
+}
+
+function filterCourses() {
+  const searchTerm = document.getElementById("courseSearchInput").value.toLowerCase()
+  const filtered = currentCourses.filter(
+    (course) => course.name.toLowerCase().includes(searchTerm) || course.level.toLowerCase().includes(searchTerm),
+  )
+  renderCourses(filtered)
 }
 
 function filterAndRenderResults() {
-  const searchTerm = document.getElementById("searchInput").value.toLowerCase();
-  const selectedStatus = document.getElementById("statusFilter").value;
+  const searchTerm = document.getElementById("searchInput")?.value.toLowerCase() || ""
+  const selectedStatus = document.getElementById("statusFilter")?.value || ""
 
-  if (!Array.isArray(globalResults)) return;
+  if (!Array.isArray(globalResults)) return
 
-  const filtered = globalResults.filter(sub => {
-    const matchesTitle = sub.quiz_title.toLowerCase().includes(searchTerm);
-    const matchesStatus = selectedStatus ? sub.status.toLowerCase() === selectedStatus : true;
-    return matchesTitle && matchesStatus;
-  });
+  const filtered = globalResults.filter((sub) => {
+    const matchesTitle = sub.quiz_title.toLowerCase().includes(searchTerm)
+    const matchesStatus = selectedStatus ? sub.status.toLowerCase() === selectedStatus : true
+    return matchesTitle && matchesStatus
+  })
 
-  showStaticSubmissions(1, filtered); 
+  showStaticSubmissions(1, filtered)
 }
 
-window.addEventListener('DOMContentLoaded', async () => {
-  getCurrentQuizes();
-  showStaticSubmissions();
+// Utility functions
+function showLoadingState(container) {
+  container.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    `
+}
 
-  const justLoggedIn = await window.api.checkJustLoggedIn();
-  if (justLoggedIn) {
-    showSnackbar("Login successfully");
+function showEmptyState(container, title, message) {
+  container.innerHTML = `
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h3>${title}</h3>
+            <p>${message}</p>
+        </div>
+    `
+}
+
+function showErrorState(container, message) {
+  container.innerHTML = `
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </div>
+            <h3>Error</h3>
+            <p>${message}</p>
+            <button class="btn btn-primary" onclick="location.reload()">Retry</button>
+        </div>
+    `
+}
+
+function showSnackbar(message, type = "success") {
+  const snackbar = document.getElementById("snackbar")
+  const messageEl = snackbar.querySelector(".snackbar-message")
+  const iconEl = snackbar.querySelector(".snackbar-icon")
+
+  messageEl.textContent = message
+
+  // Update icon based on type
+  let iconSvg = ""
+  switch (type) {
+    case "success":
+      iconSvg = '<polyline points="20 6 9 17 4 12"></polyline>'
+      break
+    case "error":
+      iconSvg = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>'
+      break
+    case "warning":
+      iconSvg = '<line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>'
+      break
+    default:
+      iconSvg = '<polyline points="20 6 9 17 4 12"></polyline>'
   }
-});
 
-function showSnackbar(message) {
-    const snackbar = document.getElementById('snackbar');
-    snackbar.textContent = message;
-    snackbar.classList.add('show');
-    setTimeout(() => snackbar.classList.remove('show'), 3000);
+  iconEl.innerHTML = iconSvg
+  snackbar.classList.add("show")
+
+  setTimeout(() => {
+    snackbar.classList.remove("show")
+  }, 3000)
 }
 
-window.api.startResultsStream();
+function showConfirmModal(title, message, onConfirm) {
+  const modal = document.getElementById("confirmModal")
+  const titleEl = document.getElementById("modalTitle")
+  const messageEl = document.getElementById("modalMessage")
+  const confirmBtn = document.getElementById("modalConfirm")
 
-window.api.onResultsUpdate((results) => {
-  globalResults = results;
-  filterAndRenderResults();
-});
+  titleEl.textContent = title
+  messageEl.textContent = message
+
+  // Remove existing listeners
+  const newConfirmBtn = confirmBtn.cloneNode(true)
+  confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn)
+
+  // Add new listener
+  newConfirmBtn.addEventListener("click", () => {
+    hideModal()
+    onConfirm()
+  })
+
+  modal.classList.add("show")
+}
+
+function hideModal() {
+  const modal = document.getElementById("confirmModal")
+  modal.classList.remove("show")
+}
+
+function getGradeClass(grade) {
+  if (grade === null || grade === undefined) return ""
+  const numGrade = Number.parseFloat(grade)
+  if (numGrade >= 80) return "high"
+  if (numGrade >= 60) return "medium"
+  return "low"
+}
+
+function escapeHtml(text) {
+  const div = document.createElement("div")
+  div.textContent = text
+  return div.innerHTML
+}
+
+function debounce(func, wait) {
+  let timeout
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
