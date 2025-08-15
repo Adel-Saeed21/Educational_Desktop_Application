@@ -2,6 +2,8 @@ const forgotForm = document.getElementById('forgotForm');
 const otpForm = document.getElementById('otpForm');
 const snackbar = document.getElementById('snackbar');
 const timerSpan = document.getElementById('timer');
+const resetPasswordForm=document.getElementById('resetPasswordForm');
+const backToEmailBtn=document.getElementById('backToEmailBtn');
 let timerInterval, timeLeft = 60;
 let email = "";
 
@@ -25,6 +27,15 @@ forgotForm.addEventListener('submit', async (e) => {
         showSnackbar(result.message || "Failed to send OTP");
     }
 });
+
+
+backToEmailBtn.addEventListener('click',(e)=>{
+    e.preventDefault();
+    resetPasswordForm.classList.style('none');
+    
+    
+
+})
 
 otpForm.addEventListener('submit', async (e) => {
     e.preventDefault();
