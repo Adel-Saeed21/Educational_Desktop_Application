@@ -834,29 +834,71 @@ ipcMain.handle("navigate-to-details", async () => {
 })
 
 //----------------------Fetch results
-ipcMain.handle("get-result-solutions", async (_, submissionIndex) => {
-  const submissions = global.submissions || []
-  const selectedSubmission = submissions[submissionIndex]
-  return selectedSubmission?.answers || null
-})
-
 ipcMain.handle("get-result", async () => {
   try {
     const response = await sendAuthorizedRequest(
       "get",
-      "https://quizroom-backend-production.up.railway.app/api/student/submissions/",
-    )
-    const submissions = response.data
-    global.submissions = submissions
-    return { success: true, results: submissions }
+      "https://quizroom-backend-production.up.railway.app/api/student/submissions/"
+    );
+    const submissions = response.data;
+    
+    global.allSubmissions = submissions;
+    return { success: true, results: submissions };
   } catch (error) {
+    console.error("Error fetching all results:", error);
     return {
       success: false,
-      message: "Failed to fetch all Results.",
-    }
+      message: "Failed to fetch all results.",
+      error: error.message
+    };
   }
-})
+});
 
+// Handler to get quiz_id from a specific submission by index
+ipcMain.handle("get-result-quiz-id", async (event, submissionIndex) => {
+  if (!global.allSubmissions || !Array.isArray(global.allSubmissions)) {
+    const result = await ipcMain.handle("get-result")();
+    if (!result.success) {
+     
+      return null;
+    }
+    global.allSubmissions = result.results;
+  }
+
+  if (submissionIndex !== undefined && submissionIndex >= 0) {
+    const submission = global.allSubmissions[submissionIndex];
+    const quizId = submission?.quiz_id || submission?.quiz || null;
+    return quizId;
+  }
+  
+  if (global.allSubmissions.length > 0) {
+    const quizId = global.allSubmissions[0].quiz_id || global.allSubmissions[0].quiz || null;
+    return quizId;
+  }
+  
+  return null;
+});
+
+// Handler to get specific quiz submission details
+ipcMain.handle("get-quiz-details", async (event, id) => {
+  try {
+    const response = await sendAuthorizedRequest(
+      "get",
+      `https://quizroom-backend-production.up.railway.app/api/student/quizzes/${id}/submission/`
+    );
+    
+    const quizSubmission = response.data;    
+    global.currentQuizSubmission = quizSubmission;
+    return { success: true, results: quizSubmission };
+  } catch (error) {
+    console.error("Error fetching quiz details:", error);
+    return {
+      success: false,
+      message: "Failed to fetch quiz details.",
+      error: error.message
+    };
+  }
+});
 // -------------------- Logout --------------------
 
 ipcMain.on("logout", () => {
