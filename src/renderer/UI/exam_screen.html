@@ -1,43 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>Document</title>
- <link rel="stylesheet" href="../../../assets/css/exam_style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizRoom - Exam</title>
+  <!-- Added new theme system -->
+  <link rel="stylesheet" href="../../../assets/css/theme.css">
+  <link rel="stylesheet" href="../../../assets/css/exam_style.css">
 </head>
 <body>
- <div id="recordIndicator" title="Recording..."></div>
- <!--recording-->
- <div class="exam-timer">
- <h2>Exam Timer</h2>
- <div id="timer"></div>
- </div>
- <div id="homeContainer">
- <div id="questionContainer" class="question-box">
- <div id="questionText" class="question-text"></div>
- <div id="questionPoints" class="question-points">
- <span class="icon">🎯</span>
- <span></span>
- </div>
- </div>
- <!-- Toast HTML -->
- <div id="toast" style="display: none;"></div>
- <textarea id="answer" placeholder="Type your answer here..."></textarea>
- <div class="button-container">
- <button id="Previous">Previous</button>
- <button id="Exit" style="display:none;">Exit</button>
- <button id="Submit" style="display:none;">Submit</button>
- <button id="NextQuestion">NextQuestion</button>
- </div>
- </div>
- <div id="uploadingOverlay">
- <div>
- <p>Screen record uploading...</p>
- <progress id="uploadProgress"></progress>
- <p id="uploadProgressText">Preparing upload...</p>
- </div>
- </div>
- <script src="../js/exam_renderer.js"></script>
+  <!-- Enhanced header with exam info and controls -->
+  <header class="exam-header">
+    <div class="exam-header-content">
+      <div class="exam-info">
+        <div class="logo-section">
+          <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 12l2 2 4-4"/>
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+          </div>
+          <div class="exam-title">
+            <h1 id="examTitle">Quiz Exam</h1>
+            <p id="examSubtitle">Answer all questions carefully</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-controls">
+        <!-- Enhanced timer with better design -->
+        <div class="exam-timer">
+          <div class="timer-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12,6 12,12 16,14"/>
+            </svg>
+          </div>
+          <div class="timer-content">
+            <span class="timer-label">Time Remaining</span>
+            <div id="timer" class="timer-display">00:00:00</div>
+          </div>
+        </div>
+
+        <!-- Theme toggle -->
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle light/dark theme">
+          <svg class="theme-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Enhanced recording indicator positioned to avoid conflicts -->
+  <div id="recordingStatus" class="recording-indicator" title="Recording in progress" style="display: none;">
+    <div class="recording-dot"></div>
+    <span class="recording-text">Recording</span>
+  </div>
+
+  <!-- Enhanced main exam content -->
+  <main class="exam-main">
+    <div class="exam-container">
+      <!-- Progress indicator -->
+      <div class="exam-progress">
+        <div class="progress-info">
+          <span id="questionNumber" class="question-counter">Question 1 of 10</span>
+          <span id="progressPercentage" class="progress-percentage">10%</span>
+        </div>
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill" style="width: 10%"></div>
+        </div>
+      </div>
+
+      <!-- Enhanced question container -->
+      <div class="question-section">
+        <div class="question-card">
+          <div class="question-header">
+            <div class="question-meta">
+              <div class="question-type">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z"/>
+                  <path d="M19 7h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+                </svg>
+                <span>Essay Question</span>
+              </div>
+              <div id="questionPoints" class="question-points">
+                <svg class="points-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                </svg>
+                <span id="pointsValue">10 Points</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="question-content">
+            <div id="questionText" class="question-text">
+              Loading question...
+            </div>
+          </div>
+        </div>
+
+        <!-- Enhanced answer section -->
+        <div class="answer-section">
+          <div class="answer-header">
+            <label for="answer" class="answer-label">Your Answer</label>
+            <div class="answer-tools">
+              <button type="button" class="tool-btn" id="clearAnswer" title="Clear answer">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3,6 5,6 21,6"/>
+                  <path d="M19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/>
+                </svg>
+              </button>
+              <span class="character-count">
+                <span id="charCount">0</span> characters
+              </span>
+            </div>
+          </div>
+          
+          <div class="answer-input-container">
+            <textarea 
+              id="answer" 
+              class="answer-input"
+              placeholder="Type your detailed answer here. Be specific and provide examples where appropriate..."
+              rows="8"
+              maxlength="5000"
+            ></textarea>
+            <div class="input-footer">
+              <div class="input-tips">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9,9h0a3,3 0 0,1 6,0c0,2 -3,3 -3,3"/>
+                  <path d="M12,17h0"/>
+                </svg>
+                <span>Tip: Use clear, concise language and organize your thoughts</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced navigation with proper exit button placement -->
+      <div class="exam-navigation">
+        <div class="nav-section nav-left">
+          <button id="Previous" class="nav-btn secondary" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15,18 9,12 15,6"/>
+            </svg>
+            <span>Previous</span>
+          </button>
+        </div>
+
+        <div class="nav-section nav-center">
+          <!-- Removed Save Progress button -->
+        </div>
+
+        <div class="nav-section nav-right">
+          <button id="NextQuestion" class="nav-btn primary">
+            <span>Next Question</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9,18 15,12 9,6"/>
+            </svg>
+          </button>
+          
+          <button id="Submit" class="nav-btn success" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20,6 9,17 4,12"/>
+            </svg>
+            <span>Submit Exam</span>
+          </button>
+
+          <button id="Exit" class="nav-btn danger" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16,17 21,12 16,7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            <span>Exit Exam</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Enhanced toast notifications -->
+  <div id="toast" class="toast-notification" style="display: none;">
+    <div class="toast-content">
+      <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="15" y1="9" x2="9" y2="15"/>
+        <line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+      <span class="toast-message">Notification message</span>
+    </div>
+  </div>
+
+  <!-- Enhanced and perfectly centered upload overlay -->
+  <div id="uploadingOverlay" class="upload-overlay">
+    <div class="upload-content">
+      <div class="upload-animation">
+        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7,10 12,15 17,10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </div>
+      
+      <div class="upload-info">
+        <h3>Processing Exam Submission</h3>
+        <p id="uploadProgressText">Preparing submission...</p>
+        
+        <div class="upload-progress-container">
+          <div class="upload-progress-bar">
+            <div id="uploadProgress" class="upload-progress-fill"></div>
+          </div>
+          <span id="uploadPercentage" class="upload-percentage">0%</span>
+        </div>
+        
+        <p class="upload-note">Your exam is being processed. This will complete automatically.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Added theme manager and updated scripts -->
+  <script src="../../../assets/js/theme-manager.js"></script>
+  <script src="../js/exam_renderer.js"></script>
 </body>
 </html>
