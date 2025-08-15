@@ -47,7 +47,7 @@ function createWindow() {
   })
 
   mainWindow.setMenuBarVisibility(false)
-  mainWindow.loadFile("src/renderer/loading.html")
+  mainWindow.loadFile("src/renderer/UI/loading.html")
 
   setTimeout(async () => {
     const storedRefreshToken = store.get("refreshToken")
@@ -67,20 +67,20 @@ function createWindow() {
         const newToken = await refreshAccessToken()
         if (newToken) {
           // Token is valid, load home screen
-          mainWindow.loadFile("src/renderer/home.html")
+          mainWindow.loadFile("src/renderer/UI/home.html")
         } else {
           // Token is invalid, clear session and show login
           clearSession()
-          mainWindow.loadFile("src/renderer/login_screen.html")
+          mainWindow.loadFile("src/renderer/UI/login_screen.html")
         }
       } catch (error) {
         console.error("Token validation failed:", error)
         clearSession()
-        mainWindow.loadFile("src/renderer/login_screen.html")
+        mainWindow.loadFile("src/renderer/UI/login_screen.html")
       }
     } else {
       // No tokens found, show login screen
-      mainWindow.loadFile("src/renderer/login_screen.html")
+      mainWindow.loadFile("src/renderer/UI/login_screen.html")
     }
   }, 1500)
 
@@ -661,7 +661,7 @@ ipcMain.handle("show-course-statistics", async (event, id) => {
     const statistic = response.data
     global.statisticData = statistic
     console.log(global.statisticData);
-    await mainWindow.loadFile("src/renderer/statistics_screen.html")
+    await mainWindow.loadFile("src/renderer/UI/statistics_screen.html")
 
     return { success: true }
   } catch (error) {
@@ -690,7 +690,7 @@ ipcMain.handle("start-exam", async (event, id) => {
     global.quizData = quiz
     global.remainingTime = remaining > 0 ? remaining : 0 // avoid negative values
 
-    await mainWindow.loadFile("src/renderer/exam_screen.html")
+    await mainWindow.loadFile("src/renderer/UI/exam_screen.html")
 
     return { success: true }
   } catch (error) {
@@ -716,7 +716,7 @@ ipcMain.handle("exit-exam", async () => {
 
   preventClose = false
 
-  await mainWindow.loadFile("src/renderer/home.html")
+  await mainWindow.loadFile("src/renderer/UI/home.html")
 
   isExiting = false
 })
@@ -750,7 +750,7 @@ ipcMain.handle("login", async (event, email, password) => {
     store.set("currentUser", response.data.user.name)
     store.set("currentPassword", password)
 
-    mainWindow.loadFile("src/renderer/home.html")
+    mainWindow.loadFile("src/renderer/UI/home.html")
 
     return { success: true, user: response.data.user }
   } catch (error) {
@@ -830,7 +830,7 @@ ipcMain.handle("start-quizzes-stream", (event) => {
 
 ipcMain.handle("navigate-to-details", async () => {
   if (mainWindow) {
-    await mainWindow.loadFile("src/renderer/details_screen.html")
+    await mainWindow.loadFile("src/renderer/UI/details_screen.html")
   }
 })
 
@@ -869,7 +869,7 @@ ipcMain.on("logout", () => {
   store.delete("currentUser")
   store.delete("currentPassword")
 
-  mainWindow.loadFile("src/renderer/login_screen.html")
+  mainWindow.loadFile("src/renderer/UI/login_screen.html")
 })
 
 // -------------------- Get Username --------------------
@@ -1061,7 +1061,7 @@ ipcMain.handle("logout", async (event) => {
     clearSession()
 
     // Navigate to login screen
-    mainWindow.loadFile("src/renderer/login_screen.html")
+    mainWindow.loadFile("src/renderer/UI/login_screen.html")
 
     return { success: true, message: "Logged out successfully" }
   } catch (error) {
