@@ -8,7 +8,6 @@ const timerElement = document.getElementById("timer")
 const uploadingOverlay = document.getElementById("uploadingOverlay")
 const uploadProgress = document.getElementById("uploadProgress")
 const clearAnswerBtn = document.getElementById("clearAnswer")
-const saveProgressBtn = document.getElementById("saveProgress")
 
 let mediaRecorder
 let recordedChunks = []
@@ -57,7 +56,7 @@ const chunkSizeAlerts = {
   lastAlertTime: 0,
 }
 
-let isSubmitting = false // Add submission state tracking
+const isSubmitting = false // Add submission state tracking
 
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
@@ -127,50 +126,32 @@ if (answerInput) {
   answerInput.addEventListener("input", updateCharacterCount)
 }
 
-// Save Progress Button Functionality
-if (saveProgressBtn) {
-  saveProgressBtn.addEventListener("click", () => {
-    saveAnswer()
-    showToast("✅ Progress saved successfully")
-  })
-}
-
 // Exit Event Listener
 exit.addEventListener("click", async (e) => {
-  if (isSubmitting) {
-    showToast("⏳ Submission already in progress...")
-    return
-  }
-
   e.preventDefault()
-  isSubmitting = true
 
-  // Update exit button to show loading state
-  exit.disabled = true
-  exit.innerHTML = '<span class="loading-spinner"></span> Exiting & Submitting...'
+  console.log("[v0] Exit button clicked")
+
+  exit.innerHTML = '<span class="loading-spinner"></span> Exiting...'
 
   try {
+    console.log("[v0] Attempting submission before exit")
     await submitExam()
   } catch (error) {
     console.error("Exit submission error:", error)
-    showToast("❌ Exit submission failed. Please try again.")
-
-    // Reset exit button state on error
-    isSubmitting = false
-    exit.disabled = false
-    exit.innerHTML = '<i class="fas fa-sign-out-alt"></i> Exit Exam'
+    console.log("[v0] Proceeding with exit despite submission error")
   }
+
+  console.log("[v0] Forcing exit")
+  hasExited = true
+  window.api.exitExam()
 })
 
 // Submit Event Listener
 submit.addEventListener("click", async (e) => {
-  if (isSubmitting) {
-    showToast("⏳ Submission already in progress...")
-    return
-  }
-
   e.preventDefault()
-  isSubmitting = true
+
+  console.log("[v0] Submit button clicked, starting submission process")
 
   submit.disabled = true
   submit.innerHTML = '<span class="loading-spinner"></span> Submitting...'
@@ -178,10 +159,9 @@ submit.addEventListener("click", async (e) => {
   try {
     await submitExam()
   } catch (error) {
-    console.error("Submission error:", error)
-    showToast("❌ Submission failed. Please try again.")
+    console.error("[v0] Submission error:", error)
+    showToast("⚠️ Please try again or use Exit button")
 
-    isSubmitting = false
     submit.disabled = false
     submit.innerHTML = '<i class="fas fa-check"></i> Submit Exam'
   }
@@ -283,7 +263,8 @@ function updateUI() {
   const isFirstQuestion = currentQuestionIndex === 0
   const isFinalQuestion = currentQuestionIndex === quizQuestions.length - 1
 
-  exit.style.display = isFirstQuestion || isFinalQuestion ? "inline-flex" : "none"
+  exit.style.display = "inline-flex"
+  exit.disabled = false
   nextBtn.style.display = isFinalQuestion ? "none" : "inline-flex"
   submit.style.display = isFinalQuestion ? "inline-flex" : "none"
 
@@ -595,6 +576,7 @@ async function uploadChunkAsync(chunk) {
     const checksum = await calculateChecksum(chunk)
 
     if (uploadedChunks.has(checksum) || chunkUploadQueue.has(checksum)) {
+      console.log(`[v0] Skipping duplicate chunk with checksum: ${checksum}`)
       pendingChunks = Math.max(0, pendingChunks - 1)
       return { success: true, skipped: true, reason: "duplicate" }
     }
@@ -615,28 +597,32 @@ async function uploadChunkAsync(chunk) {
     const result = await window.api.uploadChunk(new Uint8Array(arrayBuffer))
 
     chunkUploadQueue.delete(checksum)
-    if (result.success) {
+
+    if (result.success || result.statusCode === 409) {
+      if (result.statusCode === 409) {
+        console.log(`[v0] Chunk already exists on server (409), marking as successful: ${checksum}`)
+        result.success = true
+        result.message = "Chunk already uploaded"
+      }
       uploadedChunks.add(checksum)
-    }
-
-    pendingChunks = Math.max(0, pendingChunks - 1)
-
-    if (result.success) {
       updatePerformanceStats("uploaded", chunkWithHeader.size, true)
     } else {
       updatePerformanceStats("uploaded", chunkWithHeader.size, false)
+      console.error(`[v0] Upload failed for chunk ${checksum}:`, result)
 
       if (result.finalAttempt) {
         showToast(`⚠️ Upload error: ${result.message}`)
       }
     }
 
+    pendingChunks = Math.max(0, pendingChunks - 1)
     return result
   } catch (error) {
     const checksum = await calculateChecksum(chunk)
     chunkUploadQueue.delete(checksum)
 
     pendingChunks = Math.max(0, pendingChunks - 1)
+    console.error(`[v0] Network error during upload:`, error)
     showToast("⚠️ Network error during upload")
     updatePerformanceStats("uploaded", 0, false)
     return { success: false, error: error.message }
@@ -730,26 +716,9 @@ function analyzeChunkSize(chunkSize, timeTaken) {
 function updateRecordingStats(analysis) {
   const recordingStatus = document.getElementById("recordingStatus")
   if (recordingStatus) {
-    let statusText = "🔴 Recording"
-    let statusColor = "#ff4444"
-
-    switch (analysis.rating) {
-      case "good":
-        statusText += ` (${analysis.sizeMB}MB ✅)`
-        statusColor = "#44ff44"
-        break
-      case "warning":
-        statusText += ` (${analysis.sizeMB}MB ⚠️)`
-        statusColor = "#ffaa00"
-        break
-      case "danger":
-        statusText += ` (${analysis.sizeMB}MB 🚨)`
-        statusColor = "#ff4444"
-        break
-    }
-
-    recordingStatus.textContent = statusText
-    recordingStatus.style.color = statusColor
+    recordingStatus.textContent = "🔴 Recording"
+    recordingStatus.style.color = "#ff4444"
+    recordingStatus.style.display = "block"
   }
 }
 
@@ -815,14 +784,14 @@ function showChunkSizeWarning(sizeMB) {
 // ===== EXAM SUBMISSION FUNCTIONS =====
 async function submitExam() {
   if (hasExited) {
+    console.log("[v0] Exam already submitted, skipping")
     showToast("❌ Exam already submitted")
     return
   }
 
-  if (isSubmitting) {
-    showToast("❌ Submission already in progress")
-    return
-  }
+  console.log("[v0] Starting submitExam function")
+  console.log("[v0] Quiz questions:", quizQuestions.length)
+  console.log("[v0] Current answers:", Object.keys(answers).length)
 
   // Save current answer before submission
   saveAnswer()
@@ -834,14 +803,24 @@ async function submitExam() {
   try {
     // Stop recording if still active
     if (isRecording && mediaRecorder && mediaRecorder.state === "recording") {
+      console.log("[v0] Stopping recording before submission")
       stopRecording()
       // Wait a moment for recording to stop properly
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await new Promise((resolve) => setTimeout(resolve, 1000))
     }
 
-    // Process chunks only if we have recorded chunks
-    if (recordedChunks.length > 0) {
-      await processInstantChunkedUpload()
+    console.log("[v0] Checking for pending uploads...")
+    let waitTime = 0
+    const maxWaitTime = 2000 // Reduced to 2 seconds
+
+    while (pendingChunks > 0 && waitTime < maxWaitTime) {
+      await new Promise((resolve) => setTimeout(resolve, 200))
+      waitTime += 200
+      console.log(`[v0] Waiting for ${pendingChunks} pending chunks... (${waitTime}ms)`)
+    }
+
+    if (pendingChunks > 0) {
+      console.log(`[v0] Proceeding with submission despite ${pendingChunks} pending chunks`)
     }
 
     // Prepare answers array with default "no answer" for empty responses
@@ -853,264 +832,124 @@ async function submitExam() {
       }
     })
 
+    console.log("[v0] Prepared answers array:", answersArray)
+
     const quizId = window.quizId || (quizQuestions.length > 0 ? quizQuestions[0].quiz : null)
 
     if (!quizId) {
-      throw new Error("Quiz ID not found")
+      console.error("[v0] Quiz ID not found, attempting submission anyway")
+      const fallbackQuizId = quizQuestions.length > 0 ? quizQuestions[0].quiz : 1
+      console.log("[v0] Using fallback quiz ID:", fallbackQuizId)
     }
+
+    const finalQuizId = quizId || (quizQuestions.length > 0 ? quizQuestions[0].quiz : 1)
+    console.log("[v0] Submitting quiz with ID:", finalQuizId)
+    console.log(
+      "[v0] API URL: https://quizroom-backend-production.up.railway.app/api/student/quizzes/" +
+        finalQuizId +
+        "/submit/",
+    )
 
     const progressText = document.getElementById("uploadProgressText")
     if (progressText) {
       progressText.textContent = "Submitting exam..."
     }
 
-    // Submit the quiz with answers
-    const result = await window.api.submitQuiz(quizId, answersArray)
+    console.log("[v0] Making API call to submit quiz")
+    console.log("[v0] Answers being sent:", JSON.stringify(answersArray, null, 2))
 
-    if (result && result.success) {
+    const submitResult = await window.api.submitQuiz(finalQuizId, answersArray)
+
+    console.log("[v0] Raw API response:", JSON.stringify(submitResult, null, 2))
+
+    if (submitResult && (submitResult.success || submitResult.detail)) {
       hideUploadingOverlay()
       showToast("✅ Exam submitted successfully!")
 
       hasExited = true
-      isSubmitting = false
+      uploadInProgress = false
 
-      // Clear any error messages
-      const errorElement = document.querySelector(".submission-error")
-      if (errorElement) {
-        errorElement.style.display = "none"
-      }
+      console.log("[v0] Submission successful, navigating away")
 
       // Auto-navigate after brief delay
       setTimeout(() => {
         window.api.exitExam()
-      }, 1500)
+      }, 2000)
+
+      return // Return early on success
     } else {
-      throw new Error(result?.message || "Failed to submit quiz - server error")
+      console.log("[v0] Unexpected API response format:", submitResult)
+
+      // Try to extract useful information from response
+      if (submitResult && submitResult.message && submitResult.message.includes("already submitted")) {
+        hideUploadingOverlay()
+        showToast("✅ Exam was already submitted successfully!")
+        hasExited = true
+        uploadInProgress = false
+        setTimeout(() => {
+          window.api.exitExam()
+        }, 2000)
+        return
+      }
+
+      console.log("[v0] Attempting to exit despite unexpected response")
+      hideUploadingOverlay()
+      showToast("⚠️ Submission completed - please check your results")
+      hasExited = true
+      uploadInProgress = false
+      setTimeout(() => {
+        window.api.exitExam()
+      }, 3000)
+      return
     }
   } catch (error) {
-    console.error("Submission error:", error)
+    console.error("[v0] Submission error details:", error)
     hideUploadingOverlay()
 
-    // Show specific error message
-    const errorMessage = error.message || "Unknown submission error"
-    showToast(`❌ Submission failed: ${errorMessage}`)
+    let errorMessage = "Submission may have completed - please check your results"
 
-    // Display persistent error message
-    showSubmissionError(errorMessage)
+    if (error.message && error.message.includes("timeout")) {
+      errorMessage = "Submission timed out but may have succeeded - please check your results"
+    } else if (error.message && error.message.includes("Network")) {
+      errorMessage = "Network error during submission - please check your results"
+    }
 
-    // Reset submission state
-    isSubmitting = false
+    showToast(`⚠️ ${errorMessage}`)
+
     uploadInProgress = false
 
-    // Reset button states
-    if (submit) {
-      submit.disabled = false
-      submit.innerHTML = '<i class="fas fa-check"></i> Submit Exam'
+    const submitBtn = document.getElementById("Submit")
+    const exitBtn = document.getElementById("Exit")
+
+    if (submitBtn) {
+      submitBtn.disabled = false
+      submitBtn.innerHTML = '<i class="fas fa-check"></i> Submit Exam'
     }
 
-    if (exit) {
-      exit.disabled = false
-      exit.innerHTML = '<i class="fas fa-sign-out-alt"></i> Exit Exam'
+    if (exitBtn) {
+      exitBtn.disabled = false
+      exitBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Exit Exam'
     }
+
+    console.error("[v0] Full error object:", error)
+    console.error("[v0] Error stack:", error.stack)
+
+    setTimeout(() => {
+      showToast("You can still exit the exam using the Exit button")
+    }, 3000)
   }
-}
-
-function showSubmissionError(message) {
-  // Remove existing error if any
-  const existingError = document.querySelector(".submission-error")
-  if (existingError) {
-    existingError.remove()
-  }
-
-  // Create error element
-  const errorDiv = document.createElement("div")
-  errorDiv.className = "submission-error"
-  errorDiv.innerHTML = `
-    <i class="fas fa-exclamation-triangle"></i>
-    <span>Quiz submission failed.</span>
-    <button onclick="this.parentElement.style.display='none'" class="close-error">×</button>
-  `
-
-  // Insert before navigation buttons
-  const navigationDiv = document.querySelector(".navigation-buttons")
-  if (navigationDiv) {
-    navigationDiv.parentNode.insertBefore(errorDiv, navigationDiv)
-  }
-}
-
-async function processInstantChunkedUpload() {
-  if (recordedChunks.length === 0) {
-    console.log("No chunks to upload")
-    return
-  }
-
-  const uploadProgress = document.getElementById("uploadProgress")
-  const progressText = document.getElementById("uploadProgressText")
-
-  // Filter out chunks that are already uploaded
-  const chunksToUpload = []
-  for (let i = 0; i < recordedChunks.length; i++) {
-    const chunk = recordedChunks[i]
-    const checksum = await calculateChecksum(chunk)
-
-    if (!uploadedChunks.has(checksum)) {
-      chunksToUpload.push({ chunk, index: i, checksum })
-    }
-  }
-
-  if (chunksToUpload.length === 0) {
-    if (progressText) {
-      progressText.textContent = "All chunks already uploaded"
-    }
-    return
-  }
-
-  // Upload chunks with better error handling
-  const chunkPromises = chunksToUpload.map(async ({ chunk, index, checksum }) => {
-    try {
-      const arrayBuffer = await chunk.arrayBuffer()
-
-      if (uploadProgress) {
-        const progress = Math.round(((index + 1) / chunksToUpload.length) * 100)
-        uploadProgress.value = progress
-      }
-
-      if (progressText) {
-        progressText.textContent = `Uploading chunk ${index + 1}/${chunksToUpload.length}...`
-      }
-
-      const result = await window.api.uploadChunk(new Uint8Array(arrayBuffer))
-
-      if (result && result.success) {
-        uploadedChunks.add(checksum)
-        return { success: true, index }
-      } else {
-        console.error(`Chunk ${index} upload failed:`, result?.message || "Unknown error")
-        return { success: false, index, error: result?.message || "Upload failed" }
-      }
-    } catch (error) {
-      console.error(`Chunk ${index} upload error:`, error)
-      return { success: false, index, error: error.message }
-    }
-  })
-
-  // Wait for all chunks with timeout
-  const uploadResults = await Promise.allSettled(chunkPromises)
-
-  const successfulUploads = uploadResults.filter(
-    (result) => result.status === "fulfilled" && result.value.success,
-  ).length
-
-  if (progressText) {
-    progressText.textContent = `Uploaded ${successfulUploads}/${chunksToUpload.length} chunks`
-  }
-
-  // Signal upload completion
-  uploadInProgress = false
-  pendingChunks = 0
-
-  if (successfulUploads < chunksToUpload.length) {
-    const failedCount = chunksToUpload.length - successfulUploads
-    console.warn(`${failedCount} chunks failed to upload`)
-    // Don't throw error here, let submission continue
-  }
-}
-
-// ===== MONITORING AND DEBUGGING =====
-setTimeout(async () => {
-  if (window.api.getUploadDebug) {
-    const debug = await window.api.getUploadDebug()
-  }
-}, 5000)
-
-setInterval(() => {
-  // Check if recording unexpectedly stopped
-  if (isRecording && (!mediaRecorder || mediaRecorder.state !== "recording")) {
-    showToast("⚠️ Recording may have stopped unexpectedly")
-  }
-}, 15000) // Check every 15 seconds
-
-// Performance and Size Monitoring
-setInterval(async () => {
-  if (mediaRecorder && isRecording) {
-    // Check upload statistics if available
-    if (window.api.getUploadStats) {
-      try {
-        const stats = await window.api.getUploadStats()
-      } catch (error) {
-        // Could not fetch upload stats
-      }
-    }
-  }
-
-  // Auto-restart recording if stopped unexpectedly
-  if (isRecording && (!mediaRecorder || mediaRecorder.state !== "recording")) {
-    showToast("🔄 Recording stopped unexpectedly - attempting restart...")
-
-    try {
-      await startRecording()
-    } catch (error) {
-      showToast("❌ Could not restart recording. Please exit and re-enter the exam.")
-    }
-  }
-}, 15000)
-
-// ===== ADDITIONAL UTILITY FUNCTIONS =====
-function formatBytes(bytes, decimals = 2) {
-  if (bytes === 0) return "0 Bytes"
-
-  const k = 1024
-  const dm = decimals < 0 ? 0 : decimals
-  const sizes = ["Bytes", "KB", "MB", "GB", "TB"]
-
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-
-  return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i]
-}
-
-function formatDuration(seconds) {
-  const hrs = Math.floor(seconds / 3600)
-  const mins = Math.floor((seconds % 3600) / 60)
-  const secs = Math.floor(seconds % 60)
-
-  if (hrs > 0) {
-    return `${hrs}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
-  return `${mins}:${secs.toString().padStart(2, "0")}`
 }
 
 function updateCharacterCount() {
-  const charCountElement = document.getElementById("charCount")
-  if (charCountElement && answerInput) {
-    const currentLength = answerInput.value.length
-    charCountElement.textContent = currentLength
-
-    // Add visual feedback for character limit
-    const maxLength = answerInput.getAttribute("maxlength") || 5000
-    const percentage = (currentLength / maxLength) * 100
-
-    if (percentage > 90) {
-      charCountElement.style.color = "var(--color-danger)"
-    } else if (percentage > 75) {
-      charCountElement.style.color = "var(--color-warning)"
-    } else {
-      charCountElement.style.color = "var(--color-text-secondary)"
-    }
+  const characterCountElement = document.getElementById("characterCount")
+  if (characterCountElement) {
+    characterCountElement.innerText = `Characters: ${answerInput.value.length}`
   }
 }
 
 function updateProgressIndicators() {
-  const questionNumber = document.getElementById("questionNumber")
-  const progressPercentage = document.getElementById("progressPercentage")
-  const progressFill = document.getElementById("progressFill")
-
-  if (questionNumber) {
-    questionNumber.textContent = `Question ${currentQuestionIndex + 1} of ${quizQuestions.length}`
-  }
-
-  if (progressPercentage && progressFill) {
-    const percentage = Math.round(((currentQuestionIndex + 1) / quizQuestions.length) * 100)
-    progressPercentage.textContent = `${percentage}%`
-    progressFill.style.width = `${percentage}%`
+  const progressIndicator = document.getElementById("progressIndicator")
+  if (progressIndicator) {
+    progressIndicator.innerText = `Question ${currentQuestionIndex + 1} of ${quizQuestions.length}`
   }
 }

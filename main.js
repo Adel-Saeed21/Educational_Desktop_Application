@@ -35,6 +35,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     height: 800,
     width: 1200,
+    frame: false,
+    titleBarStyle: "hidden",
     icon: path.join(__dirname, "build/icon.png"),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -658,7 +660,7 @@ ipcMain.handle("show-course-statistics", async (event, id) => {
 
     const statistic = response.data
     global.statisticData = statistic
-
+    console.log(global.statisticData);
     await mainWindow.loadFile("src/renderer/statistics_screen.html")
 
     return { success: true }
@@ -1066,4 +1068,30 @@ ipcMain.handle("logout", async (event) => {
     console.error("Logout error:", error)
     return { success: false, message: "Error during logout" }
   }
+})
+
+ipcMain.handle("window-minimize", () => {
+  if (mainWindow) {
+    mainWindow.minimize()
+  }
+})
+
+ipcMain.handle("window-maximize", () => {
+  if (mainWindow) {
+    if (mainWindow.isMaximized()) {
+      mainWindow.unmaximize()
+    } else {
+      mainWindow.maximize()
+    }
+  }
+})
+
+ipcMain.handle("window-close", () => {
+  if (mainWindow) {
+    mainWindow.close()
+  }
+})
+
+ipcMain.handle("window-is-maximized", () => {
+  return mainWindow ? mainWindow.isMaximized() : false
 })

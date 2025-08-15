@@ -11,10 +11,75 @@ body {
   overflow-x: hidden;
 }
 
+/* Added custom title bar styles for frameless window */
+.custom-titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 200;
+  user-select: none;
+}
+
+.titlebar-drag-region {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+  -webkit-app-region: drag;
+}
+
+.titlebar-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.window-controls {
+  display: flex;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.window-control {
+  width: 46px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.window-control:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.window-control.close-btn:hover {
+  background: #e53e3e;
+  color: white;
+}
+
+.window-control svg {
+  width: 12px;
+  height: 12px;
+}
+
 /* Modern header design */
 .main-header {
   position: fixed;
-  top: 0;
+  top: 32px; /* Adjusted for custom title bar */
   left: 0;
   right: 0;
   z-index: 100;
@@ -183,8 +248,8 @@ body {
 
 /* Enhanced main content layout */
 .main-content {
-  margin-top: 80px;
-  min-height: calc(100vh - 80px);
+  margin-top: 112px; /* Adjusted for custom title bar + header (32px + 80px) */
+  min-height: calc(100vh - 112px);
   max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
@@ -569,6 +634,7 @@ body {
   justify-content: center;
   padding: 60px 20px;
   text-align: center;
+  min-height: 300px; /* Added minimum height for better centering */
 }
 
 .loading-state p {
@@ -582,32 +648,36 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 80px 20px; /* Increased padding for better centering */
   text-align: center;
   color: var(--text-muted);
+  min-height: 400px; /* Added minimum height to center the no quizzes message */
+  width: 100%;
+  margin: 0 auto;
 }
 
 .empty-state-icon {
-  margin-bottom: 16px;
-  opacity: 0.5;
+  margin-bottom: 24px; /* Increased margin for better spacing */
+  opacity: 0.6; /* Slightly increased opacity for better visibility */
 }
 
 .empty-state-icon svg {
-  width: 64px;
-  height: 64px;
+  width: 80px; /* Increased icon size for better visibility */
+  height: 80px;
 }
 
 .empty-state h3 {
-  font-size: 20px;
+  font-size: 24px; /* Increased font size for better prominence */
   font-weight: 600;
-  margin: 0 0 8px;
+  margin: 0 0 12px; /* Increased bottom margin */
   color: var(--text-secondary);
 }
 
 .empty-state p {
   font-size: 16px;
   margin: 0;
-  max-width: 400px;
+  max-width: 500px; /* Increased max width for better readability */
+  line-height: 1.5; /* Added line height for better readability */
 }
 
 /* Enhanced pagination */
@@ -821,7 +891,7 @@ body {
   }
 
   .main-content {
-    margin-top: 70px;
+    margin-top: 102px; /* Adjusted for mobile (32px + 70px) */
     padding: 24px 16px;
   }
 
@@ -935,4 +1005,3 @@ body {
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
-  

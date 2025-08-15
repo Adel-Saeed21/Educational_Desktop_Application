@@ -110,7 +110,10 @@ if (form) {
   form.addEventListener("submit", async (event) => {
     event.preventDefault()
 
+    console.log("[v0] Login form submitted")
+
     if (!validateForm()) {
+      console.log("[v0] Form validation failed")
       return
     }
 
@@ -119,8 +122,17 @@ if (form) {
     const username = usernameInput.value.trim()
     const password = passwordInput.value
 
+    console.log("[v0] Attempting login for:", username)
+
     try {
-      const result = await window.api.login(username, password)
+      const loginPromise = window.api.login(username, password)
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Login timeout after 15 seconds")), 15000),
+      )
+
+      const result = await Promise.race([loginPromise, timeoutPromise])
+
+      console.log("[v0] Login result:", result)
 
       if (result.success) {
         showNotification("Login successful! Redirecting...", "success", 2000)
@@ -128,16 +140,28 @@ if (form) {
         // Add success animation
         form.classList.add("success")
 
+        console.log("[v0] Login successful, redirecting")
+
         // Redirect after short delay
         setTimeout(() => {
           // The API will handle the navigation
         }, 1500)
       } else {
+        console.log("[v0] Login failed:", result.message)
         showNotification(result.message || "Login failed. Please check your credentials.", "error")
       }
     } catch (error) {
-      console.error("Login error:", error)
-      showNotification("An unexpected error occurred. Please try again.", "error")
+      console.error("[v0] Login error:", error)
+
+      let errorMessage = "An unexpected error occurred. Please try again."
+
+      if (error.message.includes("timeout")) {
+        errorMessage = "Login timed out. Please check your internet connection and try again."
+      } else if (error.message.includes("Network")) {
+        errorMessage = "Network error. Please check your internet connection."
+      }
+
+      showNotification(errorMessage, "error")
     } finally {
       setLoadingState(false)
     }
