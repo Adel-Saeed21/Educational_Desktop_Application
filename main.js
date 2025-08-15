@@ -45,13 +45,13 @@ function createWindow() {
   });
 
   mainWindow.setMenuBarVisibility(false);
-  mainWindow.loadFile("src/renderer/loading.html");
+  mainWindow.loadFile("src/renderer/UI/loading.html");
   
   setTimeout(() => {
     if (store.get("refreshToken")) {
-      mainWindow.loadFile("src/renderer/home.html");
+      mainWindow.loadFile("src/renderer/UI/home.html");
     } else {
-      mainWindow.loadFile("src/renderer/login_screen.html");
+      mainWindow.loadFile("src/renderer/UI/login_screen.html");
     }
   }, 1500); 
 
@@ -643,7 +643,7 @@ try{
     const statistic=response.data;
     global.statisticData=statistic;
 
-    await mainWindow.loadFile("src/renderer/statistics_screen.html");
+    await mainWindow.loadFile("src/renderer/UI/statistics_screen.html");
 
 
     return { success: true };
@@ -672,7 +672,7 @@ ipcMain.handle("start-exam", async (event, id) => {
     global.quizData = quiz;
     global.remainingTime = remaining > 0 ? remaining : 0; // avoid negative values
 
-    await mainWindow.loadFile("src/renderer/exam_screen.html");
+    await mainWindow.loadFile("src/renderer/UI/exam_screen.html");
 
     return { success: true };
   } catch (error) {
@@ -698,7 +698,7 @@ ipcMain.handle("exit-exam", async () => {
 
   preventClose = false; 
 
-  await mainWindow.loadFile("src/renderer/home.html");
+  await mainWindow.loadFile("src/renderer/UI/home.html");
 
   isExiting = false; 
 });
@@ -732,7 +732,7 @@ store.set('refreshToken', refreshToken);
 store.set('currentUser', response.data.user.name);
 store.set('currentPassword', password);
 
-    mainWindow.loadFile("src/renderer/home.html");
+    mainWindow.loadFile("src/renderer/UI/home.html");
 
     return { success: true, user: response.data.user };
   } catch (error) {
@@ -803,7 +803,7 @@ ipcMain.handle("start-quizzes-stream", (event) => {
 
 ipcMain.handle("navigate-to-details", async () => {
   if (mainWindow) {
-    await mainWindow.loadFile("src/renderer/details_screen.html");
+    await mainWindow.loadFile("src/renderer/UI/details_screen.html");
   }
 });
 
@@ -839,7 +839,7 @@ ipcMain.on("logout", () => {
   store.delete('currentUser');
   store.delete('currentPassword');
 
-  mainWindow.loadFile("src/renderer/login_screen.html");
+  mainWindow.loadFile("src/renderer/UI/login_screen.html");
 });
 
 // -------------------- Get Username --------------------
