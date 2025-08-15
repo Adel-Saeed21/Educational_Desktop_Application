@@ -17,11 +17,11 @@ let pendingChunks = 0
 let uploadInProgress = false
 let recordingStream = null
 let sequenceCounter = 0
-const activeUploads = new Set()
-const uploadErrors = []
+const activeUploads = new Set();
+const uploadErrors = [];
 
-const uploadedChunks = new Set() // Track uploaded chunk checksums
-const chunkUploadQueue = new Map() // Track chunks being uploaded
+const uploadedChunks = new Set(); 
+const chunkUploadQueue = new Map();
 
 const MAX_CHUNK_SIZE = 15 * 1024 * 1024 // 15MB
 let currentChunkSize = 0
@@ -65,14 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
 })
 
 // Load Quiz Data
-window.api.getQuizData().then((response) => {
-  if (response && response.questions) {
-    quizQuestions = response.questions
-    updateUI()
-  } else {
-    questionElement.innerText = "Failed to load quiz questions."
-  }
-})
+
 
 // Setup Timer
 window.api.examTimer().then((res) => {
@@ -103,16 +96,15 @@ if (clearAnswerBtn) {
   clearAnswerBtn.addEventListener("click", () => {
     if (answerInput) {
       answerInput.value = ""
-      answerInput.disabled = false // Ensure input is not disabled
-      answerInput.readOnly = false // Ensure input is not read-only
+      answerInput.disabled = false 
+      answerInput.readOnly = false 
 
-      // Force focus and ensure input is interactive
       setTimeout(() => {
         answerInput.focus()
-        answerInput.click() // Additional trigger to ensure input is active
+        answerInput.click() 
       }, 50)
 
-      // Update character count if it exists
+      
       updateCharacterCount()
 
       // Show feedback
@@ -121,12 +113,10 @@ if (clearAnswerBtn) {
   })
 }
 
-// Character Count Functionality for the Answer Input
 if (answerInput) {
   answerInput.addEventListener("input", updateCharacterCount)
 }
 
-// Exit Event Listener
 exit.addEventListener("click", async (e) => {
   e.preventDefault()
 
@@ -143,7 +133,6 @@ exit.addEventListener("click", async (e) => {
   window.api.exitExam()
 })
 
-// Submit Event Listener
 submit.addEventListener("click", async (e) => {
   e.preventDefault()
 
@@ -162,7 +151,6 @@ submit.addEventListener("click", async (e) => {
   }
 })
 
-// Window Event Listeners
 window.api.setPreventClose(true)
 
 window.api.onForceExit(async () => {
@@ -266,6 +254,16 @@ function updateUI() {
   updateProgressIndicators()
   updateCharacterCount()
 }
+
+window.api.getQuizData().then((response) => {
+  if (response && response.questions) {
+    quizQuestions = response.questions
+    updateUI()
+    initializeExamProgress()
+  } else {
+    questionElement.innerText = "Failed to load quiz questions."
+  }
+})
 
 function updateTimerDisplay(timeLeft) {
   const minutes = Math.floor(timeLeft / 60)
@@ -373,7 +371,6 @@ async function startRecording() {
     currentChunkSize = 0
     lastChunkTime = Date.now()
 
-    // Setup MediaRecorder Event Handlers
     setupMediaRecorderEventHandlers()
 
     const optimalInterval = calculateOptimalInterval()
@@ -396,25 +393,19 @@ async function startRecording() {
 }
 
 function setupMediaRecorderEventHandlers() {
-  // Data Available Handler
   mediaRecorder.ondataavailable = async (event) => {
     if (event.data && event.data.size > 0) {
       const timeTaken = (Date.now() - lastChunkTime) / 1000
 
-      // Analyze chunk before processing
       const analysis = analyzeChunkSize(event.data.size, timeTaken)
 
-      // Update performance stats for generation
       updatePerformanceStats("generated", event.data.size)
 
-      // Save original chunk for local backup
       recordedChunks.push(event.data)
 
-      // Process with Enhanced Headers
       if (analysis.isOversized) {
         await splitAndUploadLargeChunk(event.data)
       } else {
-        // Normal processing with header enhancement
         await uploadChunkAsync(event.data)
       }
 
@@ -474,6 +465,73 @@ function stopRecording() {
   }
 }
 
+
+
+function updateProgressIndicators() {
+  const progressIndicator = document.getElementById("progressIndicator")
+  if (progressIndicator && quizQuestions.length > 0) {
+    progressIndicator.innerText = `Question ${currentQuestionIndex + 1} of ${quizQuestions.length}`
+  }
+  
+  const questionNumber = document.getElementById("questionNumber")
+  const progressPercentage = document.getElementById("progressPercentage")
+  const progressFill = document.getElementById("progressFill")
+  
+  if (quizQuestions.length > 0) {
+    const currentQuestion = currentQuestionIndex + 1
+    const totalQuestions = quizQuestions.length
+    
+    const examProgress = Math.round((currentQuestion / totalQuestions) * 100)
+    
+    if (questionNumber) {
+      questionNumber.innerText = `Question ${currentQuestion} of ${totalQuestions}`
+    }
+    
+    if (progressPercentage) {
+      progressPercentage.innerText = `${examProgress}%`
+    }
+    
+    if (progressFill) {
+      progressFill.style.width = `${examProgress}%`
+      
+      progressFill.style.transition = "width 0.3s ease-in-out"
+      
+    
+      if (examProgress >= 80) {
+        progressFill.style.backgroundColor = "#4CAF50"
+      } else if (examProgress >= 50) {
+        progressFill.style.backgroundColor = "#FF9800" 
+      } else {
+        progressFill.style.backgroundColor = "#2196F3" 
+      }
+    }
+  }
+}
+
+function initializeExamProgress() {
+  if (quizQuestions.length === 0) return
+  
+  const totalQuestions = quizQuestions.length
+  const questionNumber = document.getElementById("questionNumber")
+  const progressPercentage = document.getElementById("progressPercentage")
+  const progressFill = document.getElementById("progressFill")
+  
+  const initialPercentage = Math.round((1 / totalQuestions) * 100)
+  
+  if (questionNumber) {
+    questionNumber.innerText = `Question 1 of ${totalQuestions}`
+  }
+  
+  if (progressPercentage) {
+    progressPercentage.innerText = `${initialPercentage}%`
+  }
+  
+  if (progressFill) {
+    progressFill.style.width = `${initialPercentage}%`
+    progressFill.style.transition = "width 0.3s ease-in-out"
+    progressFill.style.backgroundColor = "#2196F3"
+  }
+}
 // ===== CHUNK PROCESSING FUNCTIONS =====
 async function createChunkWithHeader(videoChunk) {
   // Generate unique chunk ID
@@ -483,7 +541,7 @@ async function createChunkWithHeader(videoChunk) {
   const checksum = await calculateChecksum(videoChunk)
 
   if (uploadedChunks.has(checksum)) {
-    return null // Return null for duplicate chunks
+    return null 
   }
 
   // Create comprehensive header
@@ -526,36 +584,28 @@ async function createChunkWithHeader(videoChunk) {
     headerVersion: "2.0",
   }
 
-  // Convert header to binary format
   const headerJSON = JSON.stringify(chunkHeader)
   const headerBuffer = new TextEncoder().encode(headerJSON)
 
-  // Create header size indicator (4 bytes)
   const headerSizeBuffer = new ArrayBuffer(4)
   const headerSizeView = new DataView(headerSizeBuffer)
   headerSizeView.setUint32(0, headerBuffer.length, false) // Big endian
 
-  // Get video data
   const videoBuffer = await videoChunk.arrayBuffer()
 
-  // Combine all parts: [HeaderSize][Header][VideoData]
   const combinedBuffer = new ArrayBuffer(4 + headerBuffer.length + videoBuffer.byteLength)
 
   const combinedView = new Uint8Array(combinedBuffer)
   let offset = 0
 
-  // Copy header size (4 bytes)
   combinedView.set(new Uint8Array(headerSizeBuffer), offset)
   offset += 4
 
-  // Copy header data
   combinedView.set(headerBuffer, offset)
   offset += headerBuffer.length
 
-  // Copy video data
   combinedView.set(new Uint8Array(videoBuffer), offset)
 
-  // Create enhanced blob
   const enhancedBlob = new Blob([combinedBuffer], {
     type: "application/octet-stream",
   })
@@ -576,7 +626,6 @@ async function uploadChunkAsync(chunk) {
 
     chunkUploadQueue.set(checksum, true)
 
-    // Create Chunk with Header and Metadata instantly
     const chunkWithHeader = await createChunkWithHeader(chunk)
 
     if (!chunkWithHeader) {
@@ -585,7 +634,6 @@ async function uploadChunkAsync(chunk) {
       return { success: true, skipped: true, reason: "duplicate" }
     }
 
-    // Convert and upload immediately
     const arrayBuffer = await chunkWithHeader.arrayBuffer()
     const result = await window.api.uploadChunk(new Uint8Array(arrayBuffer))
 
@@ -634,11 +682,9 @@ async function splitAndUploadLargeChunk(largeBlob) {
 
     const partSizeMB = (chunkPart.size / 1024 / 1024).toFixed(2)
 
-    // Each split part gets its own header
     recordedChunks.push(chunkPart)
     await uploadChunkAsync(chunkPart)
 
-    // Small delay between parts
     if (i < totalParts - 1) {
       await new Promise((resolve) => setTimeout(resolve, 300))
     }
@@ -647,11 +693,10 @@ async function splitAndUploadLargeChunk(largeBlob) {
 
 // ===== UTILITY FUNCTIONS =====
 function calculateChunkPriority(chunkSize) {
-  // Higher priority for smaller, more manageable chunks
-  if (chunkSize < 1024 * 1024) return "high" // < 1MB
-  if (chunkSize < 3 * 1024 * 1024) return "normal" // < 3MB
-  if (chunkSize < 5 * 1024 * 1024) return "low" // < 5MB
-  return "critical" // > 5MB - needs special handling
+  if (chunkSize < 1024 * 1024) return "high" ;
+  if (chunkSize < 3 * 1024 * 1024) return "normal"; 
+  if (chunkSize < 5 * 1024 * 1024) return "low" 
+  return "critical";
 }
 
 async function calculateChecksum(chunk) {
@@ -675,14 +720,14 @@ function analyzeChunkSize(chunkSize, timeTaken) {
 
   if (chunkSize > chunkSizeAlerts.dangerThreshold) {
     if (now - chunkSizeAlerts.lastAlertTime > 30000) {
-      showToast(`🚨 Recording chunks are too large: ${chunkSizeMB}MB. This may cause upload failures.`)
+      showToast(` Recording chunks are too large: ${chunkSizeMB}MB. This may cause upload failures.`)
       chunkSizeAlerts.lastAlertTime = now
     }
 
     chunkSizeAlerts.consecutiveWarnings++
 
     if (chunkSizeAlerts.consecutiveWarnings >= 3) {
-      showToast("🔄 Multiple large chunks detected. Consider restarting the exam for better performance.")
+      showToast("Multiple large chunks detected. Consider restarting the exam for better performance.")
     }
   } else if (chunkSize > chunkSizeAlerts.warningThreshold) {
     chunkSizeAlerts.consecutiveWarnings++
@@ -924,9 +969,4 @@ function updateCharacterCount() {
   }
 }
 
-function updateProgressIndicators() {
-  const progressIndicator = document.getElementById("progressIndicator")
-  if (progressIndicator) {
-    progressIndicator.innerText = `Question ${currentQuestionIndex + 1} of ${quizQuestions.length}`
-  }
-}
+

@@ -697,7 +697,7 @@ ipcMain.handle("start-exam", async (event, id) => {
   }
 })
 
-// get  quiz data
+// get quiz data
 ipcMain.handle("get-quiz-data", async () => {
   return global.quizData || null
 })
