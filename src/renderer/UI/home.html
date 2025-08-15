@@ -1,78 +1,241 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Home</title>
-  <link rel="stylesheet" href="../../../assets/css/home_style.css">
-  <style>
-    .hidden {
-      display: none;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QuizRoom - Dashboard</title>
+  <!-- Added new theme system -->
+  <link rel="stylesheet" href="../../assets/css/theme.css">
+  <link rel="stylesheet" href="../../assets/css/home_style.css">
 </head>
 <body>
-  <header>
-    <h1 id="username">Welcome</h1>
-    <nav class="navigation">
-      <a href="#" id="currentBtn">Current</a>
-      <a href="#" id="CoursesBtn">Courses</a>
-      <a href="#" id="resultBtn">Result</a>
-      <button id="logoutBtn" onclick="logout()">Logout</button>
-    </nav>
+  <!-- Added custom title bar with window controls -->
+  <div class="custom-titlebar">
+    <div class="titlebar-drag-region">
+      <div class="titlebar-title">QuizRoom - Dashboard</div>
+    </div>
+    <div class="window-controls">
+      <button class="window-control minimize-btn" id="minimizeBtn" title="Minimize">
+        <svg viewBox="0 0 12 12" fill="none">
+          <path d="M2 6h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="window-control maximize-btn" id="maximizeBtn" title="Maximize">
+        <svg viewBox="0 0 12 12" fill="none">
+          <rect x="2" y="2" width="8" height="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        </svg>
+      </button>
+      <button class="window-control close-btn" id="closeBtn" title="Close">
+        <svg viewBox="0 0 12 12" fill="none">
+          <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Enhanced header with modern navigation and theme toggle -->
+  <header class="main-header">
+    <div class="header-content">
+      <div class="header-row">
+        <div class="header-left">
+          <div class="logo-section">
+            <div class="logo-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12l2 2 4-4"/>
+                <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+              </svg>
+            </div>
+            <h1 id="username" class="welcome-text">Welcome</h1>
+          </div>
+        </div>
+
+        <nav class="navigation">
+          <div class="nav-tabs">
+            <button class="nav-tab active" data-tab="current">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              <span>Current Quizzes</span>
+            </button>
+            <button class="nav-tab" data-tab="courses">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+              </svg>
+              <span>Courses</span>
+            </button>
+            <button class="nav-tab" data-tab="results">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z"/>
+                <path d="M19 7h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+              </svg>
+              <span>Results</span>
+            </button>
+          </div>
+
+          <div class="header-actions">
+            <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle light/dark theme">
+              <svg class="theme-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </button>
+            <button id="refreshBtn" class="refresh-btn" title="Refresh data">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23,4 23,10 17,10"/>
+                <polyline points="1,20 1,14 7,14"/>
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+              </svg>
+            </button>
+            <button id="logoutBtn" class="logout-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16,17 21,12 16,7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </header>
 
-<main id="mainContent">
-  <div id="currentContent">
-    <div id="yourQuizes">
-      <h2>Your Quizes</h2>
-      <p>Here are your available Quizes:</p>
-    </div>
-      <div id="loader" class="loader" style="display: none;"></div>
-      <div id="StartExam" class="exam-list"></div>
-   
+  <!-- Enhanced main content with better structure -->
+  <main id="mainContent" class="main-content">
+    <!-- Current Quizzes Section -->
+    <section id="currentContent" class="tab-content active">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Your Current Quizzes</h2>
+          <p>Ready to test your knowledge? Start a quiz below.</p>
+        </div>
+        <div class="section-actions">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              id="quizSearchInput"
+              class="search-input"
+              placeholder="Search quizzes..."
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="content-body">
+        <div id="loader" class="loading-state" style="display: none;">
+          <div class="spinner"></div>
+          <p>Loading your quizzes...</p>
+        </div>
+        <div id="StartExam" class="quiz-grid"></div>
+      </div>
+    </section>
+
+    <!-- Courses Section -->
+    <section id="CoursesContent" class="tab-content">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Your Courses</h2>
+          <p>Explore your enrolled courses and view feedback.</p>
+        </div>
+        <div class="section-actions">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              id="courseSearchInput"
+              class="search-input"
+              placeholder="Search courses..."
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="content-body">
+        <div id="courseList" class="course-grid"></div>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="resultContent" class="tab-content">
+      <div class="section-header">
+        <div class="section-title">
+          <h2>Quiz Results</h2>
+          <p>Track your performance and view detailed feedback.</p>
+        </div>
+      </div>
+
+      <div class="content-body">
+        <!-- Enhanced search and filter bar -->
+        <div class="search-filter-section">
+          <div class="search-input-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              id="searchInput"
+              class="search-input"
+              placeholder="Search by quiz name..."
+            />
+          </div>
+          
+          <div class="filter-wrapper">
+            <label for="statusFilter" class="filter-label">Status:</label>
+            <select id="statusFilter" class="filter-select">
+              <option value="">All Results</option>
+              <option value="graded">Graded</option>
+              <option value="grading">Under Review</option>
+              <option value="ungraded">Pending</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="submissionTableContainer" class="table-container"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Enhanced notification system -->
+  <div id="snackbar" class="snackbar">
+    <svg class="snackbar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span class="snackbar-message">Notification message</span>
   </div>
 
-
-<div id="CoursesContent" class="hidden">
-<div id="yourCourses">
-<h2>Your Courses</h2>
-<p>Here are your available Courses:</p>
-</div>
-<div id="courseList" class="course-list"></div>
-</div>
-
-  <div id="resultContent" class="hidden">
-    <div id="yourResults">
-      <h2>Your Result</h2>
-      <p>Here are your available Courses Results:</p>
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Confirm Action</h3>
+        <button id="modalClose" class="modal-close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="modalMessage">Are you sure you want to perform this action?</p>
+      </div>
+      <div class="modal-footer">
+        <button id="modalCancel" class="btn btn-secondary">Cancel</button>
+        <button id="modalConfirm" class="btn btn-primary">Confirm</button>
+      </div>
     </div>
- <div class="search-filter-bar">
-  <input
-    type="text"
-    id="searchInput"
-    placeholder="Search by quiz name..."
-  />
-  
-  <select id="statusFilter">
-   <option value="">All</option>
-<option value="graded">graded</option>
-<option value="grading">grading</option>
-<option value="ungraded">ungraded</option>
-
-  </select>
-</div>
-
-    
-    <div id="submissionTableContainer" class="mt-4"></div>
-
   </div>
 
-
- <div id="snackbar">Login Successfully</div>
-
-</main>
-
-
-  <script src="../js/home_renderer.js"></script>
+  <!-- Added theme manager and updated scripts -->
+  <script src="../../assets/js/theme-manager.js"></script>
+  <script src="./js/home_renderer.js"></script>
 </body>
 </html>

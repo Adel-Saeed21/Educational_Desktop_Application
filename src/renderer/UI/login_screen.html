@@ -1,44 +1,123 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../../../assets/css/login_Style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizRoom - Login</title>
+    <!-- Added new theme system and removed Bootstrap dependency -->
+    <link rel="stylesheet" href="../../assets/css/theme.css">
+    <link rel="stylesheet" href="../../assets/css/login_Style.css">
 </head>
 <body>
-    <div id="loginFormContainer">
-        <h1 class="text-center">Welcome back</h1>
-        <form id="loginForm">
-            <div class="mb-3">
-                <label for="username" class="form-label">Email:</label>
-                <input type="text" id="username" class="form-control" placeholder="Email" required />
-            </div>
-
-            <div class="mb-3 position-relative">
-                <label for="password" class="form-label">Password:</label>
-                <input type="password" id="password" class="form-control pe-5" placeholder="Password" required />
-                <img src="../../assets/view_password.png" id="toggleEye" class="toggle-eye" alt="toggle password">
-            </div>
-
-            <div class="text-center">
-                <button type="submit" id="loginButton" class="btn btn-primary">Login</button>
-            </div>
-            <div class="text-center mt-2">
-        <a href="#" id="forgotPasswordLink">Forgot Password?</a>
-    </div>
-        </form>
+    <!-- Added theme toggle button in top-right corner -->
+    <div class="theme-toggle-container">
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle light/dark theme">
+            <svg class="theme-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+        </button>
     </div>
 
-    <div id="snackbar">Invalid credentials</div>
- <div id="loader" class="d-none loader-overlay">
-  <div class="spinner-border text-primary" role="status">
-    <span class="visually-hidden">Loading...</span>
-  </div>
-</div>
+    <!-- Enhanced login container with better structure -->
+    <div class="login-wrapper">
+        <div class="login-container card fade-in">
+            <div class="login-header">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-4"/>
+                            <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                            <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+                            <path d="M12 3c0 1-1 3-3 3s-3-2-3-3 1-3 3-3 3 2 3 3"/>
+                            <path d="M12 21c0-1-1-3-3-3s-3 2-3 3 1 3 3 3 3-2 3-3"/>
+                        </svg>
+                    </div>
+                    <h1 class="logo-text">QuizRoom</h1>
+                </div>
+                <h2 class="welcome-text">Welcome back</h2>
+                <p class="subtitle">Sign in to your account to continue</p>
+            </div>
 
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="username" class="form-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                        <input 
+                            type="email" 
+                            id="username" 
+                            class="form-input" 
+                            placeholder="Enter your email" 
+                            required 
+                            autocomplete="email"
+                        />
+                    </div>
+                </div>
 
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-wrapper password-wrapper">
+                        <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <circle cx="12" cy="16" r="1"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            class="form-input" 
+                            placeholder="Enter your password" 
+                            required 
+                            autocomplete="current-password"
+                        />
+                        <button type="button" id="toggleEye" class="password-toggle" aria-label="Toggle password visibility">
+                            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-    <script src="../js/login_renderer.js"></script>
+                <div class="form-actions">
+                    <button type="submit" id="loginButton" class="btn btn-primary login-btn">
+                        <span class="btn-text">Sign In</span>
+                        <div class="btn-spinner" style="display: none;">
+                            <div class="spinner"></div>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="form-footer">
+                    <a href="#" id="forgotPasswordLink" class="forgot-link">Forgot your password?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Enhanced notification system -->
+    <div id="snackbar" class="notification error" style="display: none;">
+        <svg class="notification-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
+        <span class="notification-text">Invalid credentials</span>
+    </div>
+
+    <!-- Enhanced loading overlay -->
+    <div id="loader" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner large"></div>
+            <p class="loading-text">Signing you in...</p>
+        </div>
+    </div>
+
+    <!-- Added theme manager and updated scripts -->
+    <script src="../../assets/js/theme-manager.js"></script>
+    <script src="./js/login_renderer.js"></script>
 </body>
 </html>

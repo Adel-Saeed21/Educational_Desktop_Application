@@ -3,48 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course Statistics</title>
-    <link rel="stylesheet" href="../../../assets/css/statistics_style.css">
+    <title>QuizRoom - Course Statistics</title>
+    <!-- Added new theme system -->
+    <link rel="stylesheet" href="../../assets/css/theme.css">
+    <link rel="stylesheet" href="../../assets/css/statistics_style.css">
 </head>
 <body>
-<header>
-  <h1 class="title">Review Statistics</h1>
-  <button id="homeBtn" title="Back to Home">Back</button>  
-</header>
+    <!-- Enhanced header with modern design -->
+    <header class="stats-header">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z"/>
+                            <path d="M19 7h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+                        </svg>
+                    </div>
+                    <div class="header-title">
+                        <h1 class="title">Course Statistics</h1>
+                        <p class="subtitle">Performance overview and insights</p>
+                    </div>
+                </div>
+            </div>
 
-<main class="main-wrapper">
-  <div id="answersContainer" class="container"></div>
-</main>
+            <div class="header-actions">
+                <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle light/dark theme">
+                    <svg class="theme-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+                <button id="homeBtn" class="back-btn" title="Back to Home">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9,22 9,12 15,12 15,22"/>
+                    </svg>
+                    <span>Back to Home</span>
+                </button>
+            </div>
+        </div>
+    </header>
 
+    <!-- Enhanced main content -->
+    <main class="main-content">
+        <div class="content-container">
+            <!-- Course overview section -->
+            <section class="course-overview">
+                <div class="overview-card">
+                    <div class="course-header">
+                        <div class="course-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                            </svg>
+                        </div>
+                        <div class="course-info">
+                            <h2 id="courseName" class="course-name">Loading...</h2>
+                            <p class="course-description">Your performance summary</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-<div class="stats-container">
-  <div class="stat-card">
-    <h3>📘 Course Name</h3>
-    <p id="courseName">Math 101</p>
-  </div>
-  <div class="stat-card">
-    <h3>📊 Average Score</h3>
-    <p id="averageScore">85.0</p>
-  </div>
-  <div class="stat-card">
-    <h3>🏅 Ranking</h3>
-    <p id="ranking">2</p>
-  </div>
-  <div class="stat-card">
-    <h3>💯 Total Score</h3>
-    <p id="totalScore">255.0</p>
-  </div>
-  <div class="stat-card">
-    <h3>📈 Rank by Total Score</h3>
-    <p id="rankingByTotalScore">3</p>
-  </div>
-  <div class="stat-card">
-    <h3>👥 Total Students</h3>
-    <p id="totalStudents">25</p>
-  </div>
-</div>
+            <!-- Enhanced statistics grid -->
+            <section class="statistics-section">
+                <div class="section-header">
+                    <h3>Performance Metrics</h3>
+                    <p>Detailed breakdown of your course performance</p>
+                </div>
 
+                <div class="stats-grid">
+                    <div class="stat-card primary">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2z"/>
+                                <path d="M19 7h-4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <h4>Average Score</h4>
+                            <div class="stat-value">
+                                <span id="averageScore" class="value">--</span>
+                                <span class="unit">%</span>
+                            </div>
+                            <div class="stat-progress">
+                                <div class="progress-bar">
+                                    <div id="averageScoreProgress" class="progress-fill" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-    <script src="../js/statistics_renderer.js"></script>
+                    <div class="stat-card success">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <h4>Class Ranking</h4>
+                            <div class="stat-value">
+                                <span id="ranking" class="value">--</span>
+                                <span class="unit">/ <span id="totalStudents">--</span></span>
+                            </div>
+                            <div class="ranking-badge">
+                                <span id="rankingBadge" class="badge">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <h4>Total Score</h4>
+                            <div class="stat-value">
+                                <span id="totalScore" class="value">--</span>
+                                <span class="unit">pts</span>
+                            </div>
+                            <div class="stat-trend">
+                                <span id="scoreTrend" class="trend">Calculating...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card info">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="8.5" cy="7" r="4"/>
+                                <path d="M20 8v6"/>
+                                <path d="M23 11h-6"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <h4>Score Ranking</h4>
+                            <div class="stat-value">
+                                <span id="rankingByTotalScore" class="value">--</span>
+                                <span class="unit">/ <span id="totalStudentsScore">--</span></span>
+                            </div>
+                            <div class="percentile">
+                                <span id="percentile" class="percentile-text">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Performance insights section -->
+            <section class="insights-section">
+                <div class="section-header">
+                    <h3>Performance Insights</h3>
+                    <p>AI-powered analysis of your performance</p>
+                </div>
+
+                <div class="insights-grid">
+                    <div class="insight-card">
+                        <div class="insight-icon success">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20,6 9,17 4,12"/>
+                            </svg>
+                        </div>
+                        <div class="insight-content">
+                            <h4>Strengths</h4>
+                            <p id="strengthsText">Analyzing your performance patterns...</p>
+                        </div>
+                    </div>
+
+                    <div class="insight-card">
+                        <div class="insight-icon warning">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.34 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                        </div>
+                        <div class="insight-content">
+                            <h4>Areas for Improvement</h4>
+                            <p id="improvementText">Identifying growth opportunities...</p>
+                        </div>
+                    </div>
+
+                    <div class="insight-card">
+                        <div class="insight-icon info">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4"/>
+                                <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"/>
+                                <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"/>
+                            </svg>
+                        </div>
+                        <div class="insight-content">
+                            <h4>Recommendations</h4>
+                            <p id="recommendationsText">Generating personalized suggestions...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Additional answers container for compatibility -->
+            <div id="answersContainer" class="container" style="display: none;"></div>
+        </div>
+    </main>
+
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Loading statistics...</p>
+        </div>
+    </div>
+
+    <!-- Added theme manager and updated scripts -->
+    <script src="../../assets/js/theme-manager.js"></script>
+    <script src="./js/statistics_renderer.js"></script>
 </body>
 </html>
