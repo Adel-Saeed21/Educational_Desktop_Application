@@ -660,7 +660,6 @@ ipcMain.handle("show-course-statistics", async (event, id) => {
 
     const statistic = response.data
     global.statisticData = statistic
-    console.log(global.statisticData);
     await mainWindow.loadFile("src/renderer/UI/statistics_screen.html")
 
     return { success: true }
