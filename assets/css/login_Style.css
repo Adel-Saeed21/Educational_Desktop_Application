@@ -11,7 +11,7 @@ body {
     position: relative;
   }
   
-  /* Added custom title bar styles for frameless window */
+ /* Added custom title bar styles for frameless window */
 .custom-titlebar {
   position: fixed;
   top: 0;
@@ -66,6 +66,16 @@ body {
   color: var(--text-primary);
 }
 
+.window-control.minimize-btn:hover {
+  background: var(--text-primary);
+  color: var(--bg-secondary);
+}
+
+.window-control.maximize-btn:hover {
+  background: var(--text-primary);
+  color: var(--bg-secondary);
+}
+
 .window-control.close-btn:hover {
   background: #e53e3e;
   color: white;
@@ -75,6 +85,7 @@ body {
   width: 12px;
   height: 12px;
 }
+
   /* Added theme toggle positioning */
   .theme-toggle-container {
     position: fixed;

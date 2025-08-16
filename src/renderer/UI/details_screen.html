@@ -9,6 +9,29 @@
   <link rel="stylesheet" href="../../../assets/css/details_style.css" />
 </head>
 <body>
+  <!-- Added custom title bar with window controls -->
+  <div class="custom-titlebar">
+    <div class="titlebar-drag-region">
+      <div class="titlebar-title">QuizRoom</div>
+    </div>
+    <div class="window-controls">
+      <button class="window-control minimize-btn" id="minimizeBtn" title="Minimize">
+        <svg viewBox="0 0 12 12" fill="none">
+          <path d="M2 6h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="window-control maximize-btn" id="maximizeBtn" title="Maximize">
+        <svg viewBox="0 0 12 12" fill="none">
+          <rect x="2" y="2" width="8" height="8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        </svg>
+      </button>
+      <button class="window-control close-btn" id="closeBtn" title="Close">
+        <svg viewBox="0 0 12 12" fill="none">
+          <path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
   <!-- Enhanced header with modern design -->
   <header class="details-header">
     <div class="header-content">
