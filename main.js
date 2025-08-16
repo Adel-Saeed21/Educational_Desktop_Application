@@ -54,7 +54,6 @@ function createWindow() {
     const storedStudentToken = store.get("studentToken")
 
     if (storedRefreshToken && storedStudentToken) {
-      // Validate the stored tokens by trying to refresh
       try {
         refreshToken = storedRefreshToken
         studentToken = storedStudentToken
@@ -63,13 +62,10 @@ function createWindow() {
         currentUser = store.get("currentUser") || null
         currentPassword = store.get("currentPassword") || null
 
-        // Try to refresh the token to validate it's still valid
         const newToken = await refreshAccessToken()
         if (newToken) {
-          // Token is valid, load home screen
           mainWindow.loadFile("src/renderer/UI/home.html")
         } else {
-          // Token is invalid, clear session and show login
           clearSession()
           mainWindow.loadFile("src/renderer/UI/login_screen.html")
         }
@@ -668,6 +664,7 @@ ipcMain.handle("show-course-statistics", async (event, id) => {
   }
 })
 ipcMain.handle("get-course-statistics", async () => {
+  console.log(global.statisticData)
   return global.statisticData || null
 })
 
@@ -679,6 +676,7 @@ ipcMain.handle("start-exam", async (event, id) => {
     )
 
     const quiz = response.data
+    console.log("quiz:",quiz);
 
     const startTime = new Date(quiz.start_date).getTime() // in ms
     const endTime = new Date(quiz.end_date).getTime() // in ms
@@ -699,6 +697,7 @@ ipcMain.handle("start-exam", async (event, id) => {
 
 // get quiz data
 ipcMain.handle("get-quiz-data", async () => {
+
   return global.quizData || null
 })
 
