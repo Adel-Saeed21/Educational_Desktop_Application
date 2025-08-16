@@ -300,6 +300,24 @@ body {
   margin-bottom: 32px;
 }
 
+/* Added centering for empty state in quiz-grid */
+.quiz-grid:has(.empty-state),
+.course-grid:has(.empty-state) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+/* Fallback for browsers that don't support :has() */
+.quiz-grid.empty-container,
+.course-grid.empty-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
 .quiz-card,
 .course-card {
   background: var(--bg-card);
