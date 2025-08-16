@@ -11,10 +11,74 @@ body {
     position: relative;
   }
   
+  /* Added custom title bar styles for frameless window */
+.custom-titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 200;
+  user-select: none;
+}
+
+.titlebar-drag-region {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+  -webkit-app-region: drag;
+}
+
+.titlebar-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.window-controls {
+  display: flex;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.window-control {
+  width: 46px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.window-control:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.window-control.close-btn:hover {
+  background: #e53e3e;
+  color: white;
+}
+
+.window-control svg {
+  width: 12px;
+  height: 12px;
+}
   /* Added theme toggle positioning */
   .theme-toggle-container {
     position: fixed;
-    top: 20px;
+    top: 40px;
     right: 20px;
     z-index: 1000;
   }
