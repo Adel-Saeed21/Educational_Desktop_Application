@@ -66,6 +66,16 @@ body {
   color: var(--text-primary);
 }
 
+.window-control.minimize-btn:hover {
+  background: var(--text-primary);
+  color: var(--bg-secondary);
+}
+
+.window-control.maximize-btn:hover {
+  background: var(--text-primary);
+  color: var(--bg-secondary);
+}
+
 .window-control.close-btn:hover {
   background: #e53e3e;
   color: white;
@@ -248,7 +258,7 @@ body {
 
 /* Enhanced main content layout */
 .main-content {
-  margin-top: 112px; /* Adjusted for custom title bar + header (32px + 80px) */
+  margin-top: 132px; /* Adjusted for custom title bar + header (32px + 80px) */
   min-height: calc(100vh - 112px);
   max-width: 1400px;
   margin-left: auto;

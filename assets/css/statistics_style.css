@@ -10,11 +10,85 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
 }
+/* Added custom title bar styles for frameless window */
+.custom-titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 200;
+  user-select: none;
+}
+
+.titlebar-drag-region {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+  -webkit-app-region: drag;
+}
+
+.titlebar-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.window-controls {
+  display: flex;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.window-control {
+  width: 46px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.window-control:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.window-control.minimize-btn:hover {
+  background: var(--text-primary);
+  color: var(--bg-secondary);
+}
+
+.window-control.maximize-btn:hover {
+  background: var(--text-primary);
+  color: var(--bg-secondary);
+}
+
+.window-control.close-btn:hover {
+  background: #e53e3e;
+  color: white;
+}
+
+.window-control svg {
+  width: 12px;
+  height: 12px;
+}
 
 /* Enhanced header design */
 .stats-header {
   position: fixed;
-  top: 0;
+  top: 32px;
   left: 0;
   right: 0;
   z-index: 100;
@@ -110,8 +184,8 @@ body {
 
 /* Enhanced main content */
 .main-content {
-  margin-top: 100px;
-  min-height: calc(100vh - 100px);
+  margin-top: 132px; /* Adjusted for custom title bar + header (32px + 80px) */
+  min-height: calc(100vh - 112px);
   padding: 32px 24px;
 }
 
